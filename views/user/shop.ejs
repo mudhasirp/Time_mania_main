@@ -1,0 +1,512 @@
+<%- include("../../views/partials/user/header") %>
+
+<style>
+  /* General container styles */
+  .main-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .shop-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .search-form {
+    display: flex;
+    align-items: center;
+    background-color: #f1f1f1;
+    border-radius: 25px;
+    overflow: hidden;
+    max-width: 250px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .search-input {
+    flex: 1;
+    padding: 8px 10px;
+    font-size: 14px;
+    border: none;
+    outline: none;
+    background-color: transparent;
+  }
+
+  .search-button {
+    padding: 8px 15px;
+    background-color: #1e918b;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    border-radius: 15px;
+    margin-right: 5px;
+    transition: background-color 0.3s, transform 0.2s;
+  }
+
+  .search-button:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+  }
+
+  /* Flex container to hold the sidebar and product grid */
+  .product-list-container {
+    display: flex;
+    gap: 20px;
+  }
+
+  /* Sidebar styling */
+  aside.sidebar {
+    width: 250px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .filter-section {
+    margin-bottom: 20px;
+  }
+
+  .filter-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+    text-align: center;
+  }
+
+  .category-brand-container ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .filter-item {
+    margin: 10px 0;
+  }
+
+  /* Custom Checkbox Styling */
+  .custom-checkbox {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+    font-size: 14px;
+    color: #333;
+  }
+
+  /* Hide the default checkbox */
+  .custom-checkbox input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+  }
+
+  /* Custom checkbox square */
+  .checkbox-mark {
+    height: 18px;
+    width: 18px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-right: 10px;
+    transition: background-color 0.3s, border-color 0.3s;
+    position: relative;
+  }
+
+  /* Checkmark when checked */
+  .custom-checkbox input[type="checkbox"]:checked ~ .checkbox-mark:after {
+    content: "";
+    position: absolute;
+    left: 5px;
+    top: 1px;
+    width: 4px;
+    height: 8px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  /* Change background when checked */
+  .custom-checkbox input[type="checkbox"]:checked ~ .checkbox-mark {
+    background-color: #007bff;
+    border-color: #007bff;
+  }
+
+  .checkbox-text {
+    display: inline-block;
+  }
+
+  /* Apply Filters button styling */
+  .apply-button {
+    display: inline-block;
+    width: 100%;
+    padding: 10px;
+    background-color: #1e918b;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.3s;
+  }
+
+  .apply-button:hover {
+    background-color: #0056b3;
+  }
+
+  /* Product grid styling */
+  main.product-grid {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: space-between;
+  }
+
+  .product-card {
+    width: calc(33.333% - 20px);
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    position: relative;
+    box-sizing: border-box;
+  }
+
+  .product-card img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+  }
+
+  .wishlist-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background-color: rgba(237, 247, 247, 0.8);
+    color: #fff;
+    padding: 8px;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .add-to-cart-btn {
+    background-color: #000;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 14px;
+    text-align: center;
+    border-radius: 5px;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .add-to-cart-btn:hover {
+    background-color: #0056b3;
+  }
+
+  /* Pagination styling */
+  .pagination {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 20px 0;
+  }
+
+  .pagination a {
+    padding: 8px 12px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    color: #333;
+    text-decoration: none;
+  }
+
+  .pagination .active {
+    background-color: #007bff;
+    color: #fff;
+  }
+  .price-range-container {
+  padding: 10px;
+}
+
+.price-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.price-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.price-input-group label {
+  font-size: 14px;
+  color: #666;
+  text-align: left;
+}
+
+.price-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.price-input:focus {
+  border-color: #1e918b;
+}
+
+.price-input::placeholder {
+  color: #999;
+}
+.clear-button {
+  display: inline-block;
+  width: 100%;
+  padding: 10px;
+  background-color: #ccc;
+  color: #333;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: center;
+  margin-top: 10px;
+  transition: background-color 0.3s;
+}
+
+.clear-button:hover {
+  background-color: #999;
+}
+.a
+{
+  background: black !important;
+}
+
+</style>
+
+<div class="main-container">
+  <section class="shop-page container">
+    <div class="shop-topbar">
+      <div class="search-bar">
+        <form action="/search" method="POST" class="search-form">
+          <input type="text" name="query" placeholder="Search items..." class="search-input" />
+          <button type="submit" class="search-button ddd a">Search</button>
+        </form>
+      </div>
+      <% let currentSort = typeof sort !== 'undefined' ? sort : 'popularity'; %>
+<div class="sort-section">
+  <form method="get" action="/filter">
+    <select class="sort-dropdown" name="sort" onchange="this.form.submit()">
+      <option value="popularity" <%= currentSort === 'popularity' ? 'selected' : '' %>>Popularity</option>
+      <option value="priceLowToHigh" <%= currentSort === 'priceLowToHigh' ? 'selected' : '' %>>Price: Low to High</option>
+      <option value="priceHighToLow" <%= currentSort === 'priceHighToLow' ? 'selected' : '' %>>Price: High to Low</option>
+      <option value="averageRatings" <%= currentSort === 'averageRatings' ? 'selected' : '' %>>Average Ratings</option>
+      <option value="newArrivals" <%= currentSort === 'newArrivals' ? 'selected' : '' %>>New Arrivals</option>
+      <option value="aToZ" <%= currentSort === 'aToZ' ? 'selected' : '' %>>A - Z</option>
+      <option value="zToA" <%= currentSort === 'zToA' ? 'selected' : '' %>>Z - A</option>
+    </select>
+  </form>
+</div>
+
+    </div>
+
+    <!-- Flex container for sidebar and product grid -->
+    <div class="product-list-container">
+      <!-- Sidebar (Filters) -->
+      <aside class="sidebar">
+        <form action="/filter" method="GET" class="filter-form">
+          <!-- Categories Filter -->
+          <div class="filter-section">
+            <div class="filter-title">Categories</div>
+            <div class="category-brand-container">
+              <ul>
+                <% for (let i = 0; i < category.length; i++) { %>
+                  <li class="filter-item">
+                    <label class="custom-checkbox">
+                      <input type="checkbox" name="category" value="<%= category[i]._id %>"
+                        <% if (selectedCategory && selectedCategory.includes(category[i]._id.toString())) { %> checked <% } %> />
+                      <span class="checkbox-mark"></span>
+                      <span class="checkbox-text"><%= category[i].name %></span>
+                    </label>
+                  </li>
+                <% } %>
+              </ul>
+            </div>
+          </div>
+          
+          <!-- Brands Filter -->
+          <div class="filter-section">
+            <div class="filter-title">Brands</div>
+            <div class="category-brand-container">
+              <ul>
+                <% for (let i = 0; i < brand.length; i++) { %>
+                  <li class="filter-item">
+                    <label class="custom-checkbox">
+                      <input type="checkbox" name="brand" value="<%= brand[i]._id %>"
+                        <% if (selectedBrand && selectedBrand.includes(brand[i]._id.toString())) { %> checked <% } %> />
+                      <span class="checkbox-mark"></span>
+                      <span class="checkbox-text"><%= brand[i].brandName %></span>
+                    </label>
+                  </li>
+                <% } %>
+              </ul>
+            </div>
+          </div>
+          <div class="filter-section">
+            <div class="filter-title">Price Range</div>
+            <div class="price-range-container">
+              <div class="price-inputs">
+                <div class="price-input-group">
+                  <label for="minPrice">Min Price:</label>
+                  <input 
+                    type="number" 
+                    id="minPrice" 
+                    name="minPrice" 
+                    placeholder="₹0"
+                    min="0"
+                    value="<%= locals.minPrice || '' %>"
+                    class="price-input"
+                  >
+                </div>
+                <div class="price-input-group">
+                  <label for="maxPrice">Max Price:</label>
+                  <input 
+                    type="number" 
+                    id="maxPrice" 
+                    name="maxPrice" 
+                    placeholder="₹10000"
+                    min="0"
+                    value="<%= locals.maxPrice || '' %>"
+                    class="price-input"
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="apply-button a">Apply Filters</button>
+        </form>
+        <button type="button" class="clear-button" onclick="window.location.href='/shop'">Clear Filters</button>
+      </aside>
+      
+      <!-- Product Grid -->
+      <main class="product-grid">
+        <% for (let i = 0; i < products.length; i++) { %>
+          <div class="product-card">
+            <span class="wishlist-btn" onclick="addToWishlist('<%= products[i]._id %>')">❤️</span>
+            <a href="/productDetails?id=<%= products[i]._id %>">
+              <img src="/uploads/re-image/<%= products[i].productImage[0] %>" alt="<%= products[i].productName %>" />
+              <h4><%= products[i].productName %></h4>
+              <p><%= products[i].brand %></p>
+              <p>
+                Price: ₹<%= products[i].salePrice.toLocaleString('en-IN') %>
+                <% if (products[i].productOffer > 0) { %>
+                  <span class="text-muted">
+                    <strike>₹<%= products[i].regularPrice.toLocaleString('en-IN') %></strike>
+                  </span>
+                <% } %>
+              </p>
+            </a>
+            <form action="/addToCart" method="POST" class="add-to-cart-form">
+              <input type="hidden" name="productId" value="<%= products[i]._id %>">
+              <button type="submit" class="add-to-cart-btn a">Add to Cart</button>
+            </form>
+          </div>
+        <% } %>
+      </main>
+    </div>
+
+    <!-- Pagination -->
+    <% 
+    // Determine the base URL based on filtering
+    let baseUrl = (typeof isFiltered !== 'undefined' && isFiltered) ? '/filter' : '/shop';
+  
+    // Build the query string from filter and sort parameters
+    let queryParams = [];
+    if (selectedCategory && selectedCategory.length) {
+      selectedCategory.forEach(cat => {
+        queryParams.push("category=" + encodeURIComponent(cat));
+      });
+    }
+    if (selectedBrand && selectedBrand.length) {
+      selectedBrand.forEach(brand => {
+        queryParams.push("brand=" + encodeURIComponent(brand));
+      });
+    }
+    // Add this after your existing queryParams building code
+if (minPrice) {
+  queryParams.push("minPrice=" + encodeURIComponent(minPrice));
+}
+if (maxPrice) {
+  queryParams.push("maxPrice=" + encodeURIComponent(maxPrice));
+}
+    if (sort && sort.trim() !== '') {
+      queryParams.push("sort=" + encodeURIComponent(sort));
+    }
+    // Join all query parameters into a single string (if any)
+    let extraQuery = queryParams.length ? '&' + queryParams.join('&') : '';
+  %>
+  
+  <div class="pagination">
+    <% if (currentPage > 1) { %>
+      <a class="btn" href="<%= baseUrl %>?page=<%= currentPage - 1 %><%= extraQuery %>">Prev</a>
+    <% } %>
+    <% for (let i = 1; i <= totalPages; i++) { %>
+      <a class="btn <%= currentPage === i ? 'active' : '' %>" href="<%= baseUrl %>?page=<%= i %><%= extraQuery %>"><%= i %></a>
+    <% } %>
+    <% if (currentPage < totalPages) { %>
+      <a class="btn" href="<%= baseUrl %>?page=<%= currentPage + 1 %><%= extraQuery %>">Next</a>
+    <% } %>
+  </div>
+  
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+<%- include("../../views/partials/user/footer") %>
+<script>
+  function addToWishlist(productId) {
+    $.ajax({
+      url: "/addToWishlist",
+      method: "POST",
+      data: { productId: productId },
+      success: (response) => {
+        if (response.status) {
+          Swal.fire({
+            title: "Added to wishlist",
+            text: "The product has been added to your wishlist",
+            icon: "success",
+            timer: 2000,
+          })
+        } else {
+          Swal.fire({
+            title: "Already in wishlist",
+            text: response.message,
+            timer: 2000,
+          })
+        }
+      },
+      error: (error) => {
+        Swal.fire({
+          title: "Error",
+          text: "There was an error adding the product to your wishlist",
+          icon: "error",
+          timer: 2000
+        })
+      }
+    })
+  }
+</script>

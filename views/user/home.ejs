@@ -1,0 +1,535 @@
+<%- include("../../views/partials/user/header") %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .btn {
+            display: inline-block;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #ff6b6b;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s, transform 0.3s;
+            cursor: pointer;
+            text-align: center;
+        }
+
+
+        .btn:hover {
+            background-color: #ff4c4c;
+            transform: translateY(-2px);
+        }
+
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .wishlist-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 50%;
+            color: #ff6b6b;
+            font-size: 18px;
+            z-index: 10;
+            transition: background-color 0.3s, color 0.3s, transform 0.3s;
+        }
+
+
+        .wishlist-btn:hover {
+            background-color: rgba(255, 255, 255, 1);
+            color: #ff4c4c;
+            transform: translateY(-2px);
+        }
+
+
+        .wishlist-btn:active {
+            transform: translateY(1px);
+        }
+
+
+        .product-img-action-wrap {
+            position: relative;
+        }
+
+
+        .product-img {
+            position: relative;
+            display: block;
+            overflow: hidden;
+        }
+
+
+        .product-cart-wrap {
+            border: 1px solid #eee;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+
+        .product-content-wrap h6 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+
+        .product-content-wrap h5 {
+            font-size: 16px;
+            color: #ff6b6b;
+            margin-bottom: 10px;
+        }
+
+
+        .product-content-wrap a {
+            display: inline-block;
+            padding: 8px 12px;
+            background-color: #ff6b6b;
+            color: white;
+            text-transform: uppercase;
+            font-size: 14px;
+            border-radius: 4px;
+            text-decoration: none;
+        }
+
+
+        .product-content-wrap a:hover {
+            background-color: #ff4c4c;
+        }
+
+        .bc {
+            color: white !important;
+        }
+
+        .bd {
+            color: rgb(0, 30, 8) !important;
+        }
+
+        .bb {
+            color: rgb(82, 79, 79) !important;
+        }
+
+        .bcc {
+            color: rgba(125, 109, 0, 0.965) !important;
+
+        }
+
+        .why-watches {
+            text-align: center;
+            padding: 80px 0;
+            background: linear-gradient(135deg, #222, #333);
+            color: white;
+            border-radius: 10px;
+            margin: 50px auto;
+        }
+
+        .section-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .section-subtitle {
+            font-size: 18px;
+            margin-bottom: 30px;
+            color: #bbb;
+        }
+
+        .feature-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            margin: 15px;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+
+        .feature-box i {
+            font-size: 40px;
+            color: #ff6b6b;
+            margin-bottom: 15px;
+        }
+
+        .feature-box h4 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .feature-box p {
+            font-size: 14px;
+            color: #ddd;
+        }
+
+        .feature-box:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .why-watches {
+            text-align: center;
+            padding: 80px 0;
+            background: #f8f9fa;
+            color: #333;
+            border-radius: 10px;
+            margin: 50px auto;
+        }
+
+        .section-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .section-subtitle {
+            font-size: 18px;
+            margin-bottom: 30px;
+            color: #555;
+        }
+
+        .feature-box {
+            background: white;
+            padding: 30px;
+            margin: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: 0.3s;
+        }
+
+        .feature-box i {
+            font-size: 40px;
+            color: #000000;
+            margin-bottom: 15px;
+        }
+
+        .feature-box h4 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .feature-box p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .feature-box:hover {
+            transform: translateY(-5px);
+        }
+
+        .brand-spotlight {
+            margin-top: 50px;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .brand-name {
+            font-weight: bold;
+            color: #000000;
+            font-size: 22px;
+        }
+
+        /* Section Styling */
+        .product {
+            padding: 60px 0;
+            background: #f9f9f9;
+        }
+
+        /* Filter Controls */
+        .filter__controls {
+            list-style: none;
+            padding: 0;
+            display: inline-block;
+            background: #222;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .filter__controls:hover,
+        .filter__controls .active {
+            background: #000000;
+        }
+
+        /* Product Card */
+        .product-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: all 0.3s ease-in-out;
+            text-align: center;
+            padding-bottom: 15px;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Product Image */
+        .product-img-wrap {
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .product-img {
+            width: 100%;
+            transition: transform 0.4s ease-in-out;
+        }
+
+        .product-card:hover .product-img {
+            transform: scale(1.1);
+        }
+
+        /* Wishlist Button */
+        .wishlist-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 8px;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .wishlist-btn i {
+            color: #ff6b6b;
+            font-size: 18px;
+        }
+
+        .wishlist-btn:hover {
+            background: #ff6b6b;
+        }
+
+        .wishlist-btn:hover i {
+            color: white;
+        }
+
+        /* Product Info */
+        .product-info {
+            padding: 15px;
+        }
+
+        .product-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 5px;
+        }
+
+        .product-price {
+            font-size: 18px;
+            font-weight: bold;
+            color: #000000;
+            margin-bottom: 10px;
+        }
+
+        /* Add to Cart Button */
+        .add-to-cart-btn {
+            display: inline-block;
+            background: #222;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: 0.3s;
+            text-decoration: none;
+        }
+
+        .add-to-cart-btn:hover {
+            background: #ff6b6b;
+        }
+
+        .filter__controls {
+            list-style: none;
+            padding: 0;
+            display: inline-block;
+            background: #000;
+            /* Pure Black Background */
+            color: #fff;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+            border: 2px solid #000000;
+            box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.2);
+        }
+
+        .filter__controls .active {
+            background: #ffffff;
+            /* Stylish Red Accent */
+            color: #000;
+            border-color: #000;
+        }
+
+        .filter__controls:hover {
+            background: #ff6b6b;
+            color: #000;
+            transform: scale(1.05);
+        }
+
+        /* Smooth Hover Effect */
+        .filter__controls li {
+            display: inline-block;
+            transition: 0.3s ease-in-out;
+        }
+
+        .filter__controls li:hover {
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .filter__controls {
+            list-style: none;
+            padding: 0;
+            font-size: 20px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: black;
+            /* Pure Black Text */
+            cursor: pointer;
+            transition: 0.3s;
+            display: inline-block;
+            border: none
+        }
+
+        .filter__controls .active {
+            font-weight: bold;
+            padding-bottom: 5px;
+        }
+
+        .filter__controls li {
+            display: inline-block;
+            transition: 0.3s ease-in-out;
+            padding: 5px 15px;
+        }
+
+        .filter__controls li:hover {
+            color: #555;
+            /* Subtle Grey on Hover */
+            transform: scale(1.05);
+        }
+    </style>
+    <section class="hero">
+        <div class="hero__slider owl-carousel">
+            <div class="hero__items set-bg" data-setbg="/img/signup/hunters-race-hNoSCxPWYII-unsplash.jpg">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-xl-5 col-lg-7 col-md-8">
+                            <div class="hero__text">
+                                <h6>Classic Watches Collection</h6>
+                                <h2 class="b">Timeless Elegance for Every Occasion</h2>
+                                <p class="bcc">Experience the perfect blend of precision and luxury with our exclusive
+                                    collection of watches. Crafted for those who value sophistication and style.</p>
+                                <a href="/shop" class="primary-btn">Shop now <span class="arrow_right"></span></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="hero__items set-bg" data-setbg="/img/signup/austin-lowman-qS3sqPT1T9s-unsplash.jpg">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-xl-5 col-lg-7 col-md-8">
+                            <div class="hero__text">
+                                <h6>Sports Watches Collection</h6>
+                                <h2>Durable. Bold. Powerful.</h2>
+                                <p>A prestigious brand crafting timeless timepieces.</p>
+                                <a href="/shop" class="primary-btn">Shop now <span class="arrow_right"></span></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="why-watches">
+        <div class="container">
+            <h2 class="section-title">Why Watches Matter</h2>
+            <p class="section-subtitle">More than just timekeeping, watches define style, precision, and elegance.</p>
+
+            <div class="row">
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-box">
+                        <i class="fas fa-history"></i>
+                        <h4>Timeless Legacy</h4>
+                        <p>Watches symbolize heritage and craftsmanship, carrying stories across generations.</p>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-box">
+                        <i class="fas fa-handshake"></i>
+                        <h4>Elevated Status</h4>
+                        <p>A classic watch enhances your professional presence and personal style.</p>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-box">
+                        <i class="fas fa-running"></i>
+                        <h4>Performance & Precision</h4>
+                        <p>From fitness tracking to aviation, modern watches keep up with your lifestyle.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="brand-spotlight">
+                <h3>Experience Excellence with <span class="brand-name">Time Mania</span></h3>
+                <p>Your gateway to premium, stylish, and high-performance timepieces.</p>
+            </div>
+        </div>
+    </section>
+    <section class="product spad">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <ul class="filter__controls">
+                        <li data-filter=".new-arrivals" class="active">NEW ARRIVALS</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="row product__filter">
+                <% for(let i=0; i < products.length; i++) { %>
+                    <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                        <div class="product-card">
+                            <div class="product-img-wrap">
+                                <a href="/productDetails?id=<%=products[i]._id%>">
+                                    <img class="product-img" src="/uploads/re-image/<%=products[i].productImage[0]%>"
+                                        alt="">
+                                </a>
+                                <a href="/addtoWishlist?id=<%=products[i]._id%>" class="wishlist-btn">
+                                    <i class="fas fa-heart"></i>
+                                </a>
+                            </div>
+
+                            <div class="product-info">
+                                <h6 class="product-title">
+                                    <%= products[i].productName %>
+                                </h6>
+                                <h5 class="product-price">₹<%= products[i].salePrice %>
+                                </h5>
+                                <a href="/addToCart?id=<%=products[i]._id%>" class="add-to-cart-btn">Add to Cart</a>
+                            </div>
+                        </div>
+                    </div>
+                    <% } %>
+            </div>
+        </div>
+    </section>
+
+    <%- include("../../views/partials/user/footer") %>

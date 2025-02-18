@@ -1,0 +1,424 @@
+<%- include("../../views/partials/user/header") %>
+
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f7fa;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #007bff;
+        }
+
+        .order-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+            transition: transform 0.2s;
+        }
+
+        .order-card:hover {
+            transform: scale(1.02);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .order-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #007bff;
+        }
+
+        .order-details {
+            margin-bottom: 15px;
+        }
+
+        .order-status {
+            font-weight: bold;
+        }
+
+        .order-status.pending {
+            color: #dc3545;
+        }
+
+        .order-status.processing {
+            color: #ffc107;
+        }
+
+        .order-status.shipped {
+            color: #17a2b8;
+        }
+
+        .order-status.delivered {
+            color: #28a745;
+        }
+
+        .order-status.cancelled {
+            color: #6c757d;
+        }
+
+        .order-status.return-request {
+            color: #fd7e14;
+        }
+
+        .order-status.returned {
+            color: #6f42c1;
+        }
+
+        .product-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .product-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .product-image {
+            height: 60px;
+            width: 60px;
+            object-fit: cover;
+            margin-right: 15px;
+            border-radius: 5px;
+        }
+
+        .product-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .product-quantity {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .product-price {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .cancel-btn,
+        .return-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin: 5px;
+        }
+
+        .cancel-btn:hover {
+            background-color: #c82333;
+        }
+
+        .return-btn {
+            background-color: #007bff;
+        }
+
+        .return-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+        }
+
+        .close {
+            float: right;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .product-status {
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .product-status.cancelled {
+            color: #dc3545;
+        }
+        .view-btn {
+    background-color: #17a2b8;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin: 5px;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.view-btn:hover {
+    background-color: #138496;
+}
+    </style>
+
+    <main class="container mt-4">
+        <h2>My Orders</h2>
+        <% if (orders && orders.length> 0) { %>
+            <% orders.forEach(order=> { %>
+                <div class="order-card">
+                    <div class="order-header">
+                        <h3>Order ID: <%= order.orderId %>
+                        </h3>
+                        <span class="order-status <%= order.status %>">
+                            <% if (order.orderedItems.some(item=> item.productStatus === 'cancelled')) { %>
+                                Partially Cancelled /
+                                <% } %>
+                                    <%= order.status.charAt(0).toUpperCase() + order.status.slice(1) %>
+                        </span>
+                    </div>
+                    <div class="order-details">
+                        <strong>Date:</strong>
+                        <%= new Date(order.createdOn).toLocaleDateString() %><br>
+                            <strong>Total Price:</strong> 
+                                ₹<%= (order.activeProductsTotal - order.discount).toLocaleString() %>
+                              <br>
+
+
+                                <strong>Payment Method:</strong>
+                                <%= order.payment.method ? order.payment.method : 'Not Specified' %><br>
+                                    <strong>User:</strong>
+                                    <%= order.userId.name %> (<%= order.userId.email %>)<br>
+                                            <strong>Address:</strong>
+                                            <% if (order.address && order.address.length> 0) { %>
+                                                <% order.address.forEach(addr=> { %>
+                                                    <div>
+                                                        <%= addr.name %>, <%= addr.landMark %>, <%= addr.city %>, <%=
+                                                                        addr.state %>, <%= addr.pincode %>, <%=
+                                                                                addr.phone %>
+                                                    </div>
+                                                    <% }); %>
+                                                        <% } else { %>
+                                                            <div>No address found.</div>
+                                                            <% } %>
+                    </div>
+                    <ul class="product-list">
+                        <% order.orderedItems.forEach(item=> { %>
+                            <% if (item.product && item.product.productImage && item.product.productName) { %>
+                                <!-- Inside the product-item loop -->
+                                <li class="product-item">
+                                    <img src="/uploads/re-image/<%= item.product.productImage[0] %>"
+                                        class="product-image" alt="<%= item.product.productName %>">
+                                    <div class="product-details">
+                                        <span class="product-name">
+                                            <%= item.product.productName %>
+                                        </span>
+                                        <span class="product-quantity">Quantity: <%= item.quantity %></span>
+                                        <span class="product-price">Price: ₹<%= (item.price *
+                                                item.quantity).toLocaleString() %></span>
+                                        <% if (item.productStatus !=='cancelled' && (order.status==='pending' ||
+                                            order.status==='confirmed' )) { %>
+                                            <button class="cancel-btn"
+                                                onclick="openCancelModal('<%= order._id %>', '<%= item.product._id %>')"
+                                                style="margin-top: 5px; padding: 5px 10px;">
+                                                Cancel This Item
+                                            </button>
+                                            <% } %>
+                                                <% if (item.productStatus==='cancelled' ) { %>
+                                                    <span style="color: #dc3545; margin-top: 5px;">(Cancelled)</span>
+                                                    <% } %>
+                                    </div>
+                                </li>
+                                <% } %>
+                                    <% }); %>
+                    </ul>
+
+                    <div class="text-center">
+                        <a href="/orderDetails?id=<%= order._id %>" class="view-btn">View Details</a>
+                        <% if (order.status==="pending" ) { %>
+                            <button class="cancel-btn" onclick="openCancelModal('<%= order._id %>')">Cancel Entire
+                                Order</button>
+                            <% } else if (order.status==="delivered" ) { %>
+                                <button class="return-btn" onclick="openReturnModal('<%= order._id %>')">Return
+                                    Order</button>
+                                <p>(Only before 7 days)</p>
+                                <% } else if (order.status==="confirmed" ) { %>
+                                    <button class="cancel-btn" onclick="openCancelModal('<%= order._id %>')">Cancel
+                                        Order</button>
+                                    <% } %>
+                    </div>
+
+                </div>
+                <% }); %>
+                    <% } else { %>
+                        <div class="text-center">No orders found.</div>
+                        <% } %>
+    </main>
+
+    <div id="cancelOrderModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('cancelOrderModal')">&times;</span>
+            <h3 id="modalTitle">Cancel Order</h3>
+            <form id="cancelOrderForm">
+                <input type="hidden" id="cancelOrderId" name="orderId">
+                <input type="hidden" id="cancelProductId" name="productId">
+                <div id="cancelMessage">
+                    <p>Are you sure you want to cancel this item?</p>
+                    <label for="cancelReason">Reason for Cancellation (Optional):</label>
+                    <textarea id="cancelReason" name="reason" rows="3"></textarea>
+                </div>
+                <button type="submit" class="cancel-btn">Confirm Cancellation</button>
+            </form>
+        </div>
+    </div>
+    <div id="returnOrderModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('returnOrderModal')">&times;</span>
+            <h3>Return Order</h3>
+            <form id="returnOrderForm">
+                <input type="hidden" id="returnOrderId" name="orderId">
+                <label for="returnReason">Reason for Return (Mandatory):</label>
+                <textarea id="returnReason" name="reason" rows="3" required></textarea>
+                <button type="submit" class="return-btn">Confirm Return</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function openCancelModal(orderId, productId = null) {
+            const modal = document.getElementById('cancelOrderModal');
+            const title = document.getElementById('modalTitle');
+            const message = document.getElementById('cancelMessage');
+
+            document.getElementById('cancelOrderId').value = orderId;
+            document.getElementById('cancelProductId').value = productId || '';
+
+            if (productId) {
+                title.textContent = "Cancel Product";
+                message.innerHTML = `
+            <p>Are you sure you want to cancel this specific product?</p>
+            <label for="cancelReason">Reason for Cancellation (Optional):</label>
+            <textarea id="cancelReason" name="reason" rows="3"></textarea>
+        `;
+            } else {
+                title.textContent = "Cancel Entire Order";
+                message.innerHTML = `
+            <p>Are you sure you want to cancel the entire order?</p>
+            <label for="cancelReason">Reason for Cancellation (Optional):</label>
+            <textarea id="cancelReason" name="reason" rows="3"></textarea>
+        `;
+            }
+
+            modal.style.display = 'block';
+        }
+        function openReturnModal(orderId) {
+            document.getElementById('returnOrderId').value = orderId;
+            document.getElementById('returnOrderModal').style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        document.getElementById('cancelOrderForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const orderId = document.getElementById('cancelOrderId').value;
+            const productId = document.getElementById('cancelProductId').value;
+            const reason = document.getElementById('cancelReason').value;
+
+            $.ajax({
+                url: '/cancelOrder',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ orderId, productId, reason }),
+                success: function (response) {
+                    if (response.success) {
+                        alert('Order/product cancelled successfully.');
+                        location.reload();
+                    } else {
+                        alert('Failed to cancel order/product.');
+                    }
+                },
+                error: function () {
+                    alert('Error cancelling order/product.');
+                },
+            });
+        });
+
+        document.getElementById('returnOrderForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const orderId = document.getElementById('returnOrderId').value;
+            const reason = document.getElementById('returnReason').value;
+
+            $.ajax({
+                url: '/returnOrder',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ orderId, reason }),
+                success: function (response) {
+                    if (response.success) {
+                        alert('Order returned successfully.');
+                        location.reload();
+                    } else {
+                        alert('Failed to return order.');
+                    }
+                },
+                error: function () {
+                    alert('Error returning order.');
+                },
+            });
+        });
+    </script>
+
+    <%- include("../../views/partials/user/footer") %>

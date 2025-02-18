@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Mania</title>
+    <style>
+        :root {
+            --primary-color: #000000;
+            --text-color: #1e293b;
+            --bg-color: #f8fafc;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            line-height: 1.6;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 2rem 1rem;
+        }
+
+        .faq-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 2.5rem;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        .faq-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .faq-item {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+            overflow: hidden;
+        }
+
+        .faq-item:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .faq-question {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.25rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .faq-question:hover {
+            background-color: #f8fafc;
+        }
+
+        .faq-question h3 {
+            margin: 0;
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .icon {
+            width: 24px;
+            height: 24px;
+            transition: transform 0.3s ease;
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            padding: 0 1.25rem;
+            color: #64748b;
+        }
+
+        .active .faq-answer {
+            max-height: 500px; /* Adjust based on content size */
+            padding-bottom: 1.25rem;
+        }
+
+        .active .icon {
+            transform: rotate(180deg);
+        }
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            margin-bottom: 2rem;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .back-button:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .back-button svg {
+            width: 18px;
+            height: 18px;
+            stroke: white;
+        }
+
+        @media (max-width: 640px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .faq-question h3 {
+                font-size: 1rem;
+            }
+            .back-button {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="faq-container">
+        <h1>Help Center</h1>
+        <a href="/" class="back-button">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                <path d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Back to Home
+        </a>
+        <div class="faq-list">
+            <% faqs.forEach((faq, index) => { %>
+                <div class="faq-item">
+                    <div class="faq-question" role="button" tabindex="0" data-index="<%= index %>">
+                        <h3><%= faq.question %></h3>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </div>
+                    <div class="faq-answer" id="answer-<%= index %>" role="region">
+                        <%= faq.answer %>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', () => {
+                const faqItem = question.closest('.faq-item');
+                const answer = faqItem.querySelector('.faq-answer');
+                const isActive = faqItem.classList.contains('active');
+                
+                // Close all items
+                document.querySelectorAll('.faq-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+
+                // Toggle clicked item if not active
+                if (!isActive) {
+                    faqItem.classList.add('active');
+                }
+            });
+        });
+
+        // Add keyboard accessibility
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.target.click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

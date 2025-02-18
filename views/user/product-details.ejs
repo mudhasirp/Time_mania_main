@@ -1,0 +1,457 @@
+<%- include("../../views/partials/user/header") %>
+  <style>
+    /* General Styles */
+    body {
+      font-family: 'Poppins', sans-serif;
+      color: #333;
+      line-height: 1.6;
+      /* Improved line height for better readability */
+      background-color: #ffffff;
+      /* White background */
+    }
+
+    h2,
+    h3,
+    h4 {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      margin-bottom: 15px;
+      /* Consistent spacing for headings */
+    }
+
+    h2.title-detail {
+      font-size: 32px;
+      /* Increased font size for product title */
+    }
+
+    h3 {
+      font-size: 28px;
+      /* Increased font size for section titles */
+    }
+
+    h4 {
+      font-size: 22px;
+      /* Increased font size for subheadings */
+    }
+
+    /* Product Image Styles */
+    .detail-gallery {
+      position: relative;
+    }
+
+    .coupon-section {
+      border-top: 1px solid #ddd;
+      padding-top: 20px;
+    }
+
+    #coupon-code {
+      width: 60%;
+      margin-right: 10px;
+    }
+
+    #coupon-message {
+      color: green;
+      font-size: 16px;
+      /* Increased font size for coupon message */
+      margin-top: 10px;
+    }
+
+    .zoom-icon {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      padding: 5px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .product-image-slider img {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      object-fit: contain;
+    }
+
+    .slider-nav-thumbnails img {
+      width: 60px;
+      height: 60px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      object-fit: cover;
+    }
+
+    /* Stars and Reviews Alignment */
+    .product-rate-cover {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      /* Center horizontally */
+      text-align: center;
+      /* Center text */
+    }
+
+    .product-rating {
+      display: flex;
+      /* Use flexbox for star alignment */
+      align-items: center;
+      /* Center stars vertically */
+      margin-top: 5px;
+      /* Space between stars and reviews */
+    }
+
+    .product-rating span {
+      font-size: 24px;
+      /* Increased font size for stars */
+      margin-right: 5px;
+      /* Space between stars */
+      color: #FFD700;
+      /* Gold color for stars */
+    }
+
+    .font-small.text-muted {
+      margin-top: 5px;
+      /* Space between stars and reviews */
+      font-size: 16px;
+      /* Increased font size for review count */
+      color: #666;
+      /* Muted color for review count */
+    }
+
+    /* Product Price Styles */
+    .product-price {
+      font-size: 28px;
+      /* Increased font size for sale price */
+      color: #000000 !important;
+      /* Green color for sale price */
+      font-weight: bold;
+    }
+
+    .old-price {
+      font-size: 20px;
+      /* Increased font size for old price */
+      color: #999;
+      text-decoration: line-through;
+      margin-left: 10px;
+      /* Space between prices */
+    }
+
+    .save-price {
+      font-size: 18px;
+      /* Increased font size for discount */
+      color: #dc3545;
+      /* Red color for discount */
+      margin-left: 10px;
+      /* Space between prices */
+    }
+
+    /* Button Styles */
+    .button-add-to-cart {
+      background: #000000 !important;
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      /* Increased padding for buttons */
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      margin-top: 10px;
+      /* Space above button */
+      font-size: 16px;
+      /* Increased font size for button text */
+    }
+
+    .button-add-to-cart:hover {
+      background: #555;
+    }
+
+    .action-btn {
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 12px;
+      /* Increased padding for action button */
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      margin-left: 10px;
+      /* Space between buttons */
+      font-size: 16px;
+      /* Increased font size for action button text */
+    }
+
+    .action-btn:hover {
+      background: #f0f0f0;
+    }
+
+    /* Suggested Products Section */
+    .suggested-products-section {
+      margin-top: 50px;
+      /* Space above suggested products */
+    }
+
+    .product-card {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 15px;
+      text-align: center;
+      /* Center text in product cards */
+      transition: transform 0.3s ease;
+    }
+
+    .product-card:hover {
+      transform: scale(1.05);
+      /* Slight zoom effect on hover */
+    }
+
+    .product-card img {
+      width: 100%;
+      height: auto;
+      border-radius: 5px;
+      /* Rounded corners for product images */
+    }
+
+    .product-card h5 {
+      font-size: 18px;
+      /* Font size for product name */
+      margin: 10px 0;
+      /* Space above and below product name */
+    }
+
+    .product-card p {
+      font-size: 16px;
+      /* Font size for product price */
+      color: #000000;
+      /* Green color for product price */
+    }
+
+    .B {
+      margin-left: 225px;
+    }
+
+    .c {
+      margin-right: 100px;
+    }
+
+    .g {
+      background-color: #000000 !important;
+
+    }
+
+    .m {
+      color: white !important;
+    }
+
+    .oo {
+      margin-top: 100px;
+
+    }
+
+    .uq {
+      margin-left: 20px;
+      margin-top: 2px;
+    }
+  </style>
+
+  <main class="main">
+    <div class="page-header breadcrumb-wrap g">
+      <div class="container">
+        <div class="breadcrumb c">
+          <a href="/" rel="nofollow">Home</a>
+          <span></span> products
+          <span></span> Product Detail Page
+        </div>
+      </div>
+    </div>
+
+    <section class="mt-50 mb-50">
+      <div class="container B">
+        <div class="row">
+          <div class="col-lg-9">
+            <div class="product-detail accordion-detail">
+              <div class="row mb-50">
+                <div class="col-md-6 col-sm-12 col-xs-12">
+                  <div class="detail-gallery">
+                    <span class="zoom-icon"><i class="fi-rs-search"></i></span>
+                    <div class="product-image-slider">
+                      <% product.productImage.forEach((image, index)=> { %>
+                        <figure class="border-radius-10">
+                          <img src="/uploads/re-image/<%= image %>" alt="Product Image <%= index + 1 %>">
+                        </figure>
+                        <% }) %>
+                    </div>
+                    <div class="slider-nav-thumbnails pl-15 pr-15">
+                      <% product.productImage.forEach((image, index)=> { %>
+                        <div>
+                          <img style="object-fit:contain;" src="/uploads/re-image/<%= image %>"
+                            alt="Thumbnail <%= index + 1 %>">
+                        </div>
+                        <% }) %>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-md-6 col-sm-12 col-xs-12">
+                  <div class="detail-info">
+                    <h2 class="title-detail">
+                      <%= product.productName %>
+                    </h2>
+                    <div class="product-detail-rating">
+                      <div class="pro-details-brand">
+                        <span>Brand: <a href="#">
+                            <%= product.brand %>
+                          </a></span>
+                      </div>
+
+                      <div class="product-rate-cover text-end c">
+                        <div class="product-rate d-inline-block">
+                          <div class="product-rating">
+                            <% for (let i=1; i <=5; i++) { %>
+                              <% if (i <=Math.round(Number(product.rating))) { %>
+                                <span>&#9733;</span>
+                                <% } else { %>
+                                  <span>&#9734;</span>
+                                  <% } %>
+                                    <% } %>
+                          </div>
+                        </div>
+                        <span class="font-small ml-5 text-muted">
+                          <%= product.ratingCount || 0 %> reviews
+                        </span>
+                      </div>
+                    </div>
+
+                    <div class="clearfix product-price-cover">
+                      <div class="product-price primary-color float-left">
+                        <ins><span class="text-brand">₹<%= product.salePrice %></span></ins>
+                        <!-- <ins><span class="old-price font-md ml-15">₹<%= product.regularPrice %></span></ins> -->
+
+                        <% if (product.productOffer> 0) { %>
+                          <ins><span class="old-price font-md ml-15">₹<%= product.regularPrice %></span></ins>
+
+                          <span class="save-price font-md color3 ml-15">
+                            <%= product.productOffer %> OFF
+                          </span>
+
+                          <% } %>
+                      </div>
+                    </div>
+
+
+                    <div class="bt-1 border-color-1 mt-15 mb-15"></div>
+                    <div class="short-desc mb-30">
+                      <p>
+                        <%= product.description %>
+                      </p>
+                    </div>
+
+                    <div class="product_sort_info font-xs mb-30">
+                      <ul>
+                        <li class="mb-10"><i class="fi-rs-crown mr-5"></i>4. 4 RATING</li>
+                        <li class="mb-10"><i class="fi-rs-refresh mr-5"></i> 30 Day Return Policy</li>
+                        <li><i class="fi-rs-credit-card mr-5"></i> Cash on Delivery Available</li>
+                      </ul>
+                    </div>
+
+                    <div class="bt-1 border-color-1 mt-30 mb-30"></div>
+                    <div class="detail-extralink">
+                      <div class="detail-qty border radius">
+                        <a href="#" class="qty-down"><i class="fi-rs-angle-small-down"></i></a>
+                        <span class="qty-val" id="quantity">1</span>
+                        <a href="#" class="qty-up"><i class="fi-rs-angle-small-up"></i></a>
+                      </div>
+                      <form action="/addToCart" method="POST">
+                        <input type="hidden" name="productId" value="<%= product._id %>">
+                        <button type="submit" class="button button-add-to-cart">Add to Cart</button>
+                        <a class="action-btn hover-up" href="/addToWishlist"><i class="fi-rs-heart"></i></a>
+                      </form>
+                    </div>
+
+                    <ul class="product-meta font-xs color-grey mt-50">
+                      <li class="mb-5">Stock Code: <a href="#">FWM15VKT</a></li>
+                      <li class="mb-5">Tags: <a href="#">
+                          <%= category.name %>
+                        </a></li>
+                      <li>Availability: <span class="in-stock text-success ml-5">
+                          <%= product.quantity %> Items in stock
+                        </span></li>
+                    </ul>
+
+                    <div class="rate-product mt-30">
+                      <h4 class="oo">Rate this Product</h4>
+                      <form method="POST" action="/submitrating">
+                        <input type="hidden" name="productId" value="<%= product._id %>">
+                        <div class="rating-stars ">
+                          <label for="rating o"> </label>
+                          <select name="rating o" id="rating">
+                            <option value="1">1 Star</option>
+                            <option value="2">2 Stars</option>
+                            <option value="3">3 Stars</option>
+                            <option value="4">4 Stars</option>
+                            <option value="5">5 Stars</option>
+                          </select>
+                          <button type="submit" class="button button-add-to-cart uq">Submit Rating</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="suggested-products-section mt-50 mb-50">
+      <div class="container">
+        <h3>Suggested Products</h3>
+        <div class="row">
+          <% suggestedProducts.forEach(product=> { %>
+            <div class="col-lg-4 col-md-6 col-sm-12">
+              <div class="product-card">
+                <a href="/productDetails?id=<%= product._id %>">
+                  <img src="/uploads/re-image/<%= product.productImage[0] %>" alt="<%= product.productName %>">
+                  <h5>
+                    <%= product.productName %>
+                  </h5>
+                  <p>
+                    <%= product.salePrice %>
+                  </p>
+                </a>
+              </div>
+            </div>
+            <% }) %>
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    // Handle error messages from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get('error');
+  
+    if (error === 'out_of_stock') {
+      Swal.fire({
+        icon: 'error',
+        title: 'Out of Stock',
+        text: 'This product is currently unavailable',
+        confirmButtonColor: '#000000'
+      });
+    } else if (error === 'product_not_found') {
+      Swal.fire({
+        icon: 'error',
+        title: 'Product Not Found',
+        text: 'The requested product could not be found',
+        confirmButtonColor: '#000000'
+      });
+    }
+  
+    if (error) {
+      const cleanURL = window.location.protocol + '//' + window.location.host + window.location.pathname;
+      window.history.replaceState({}, document.title, cleanURL);
+    }
+  </script>
+  <%- include("../../views/partials/user/footer") %>

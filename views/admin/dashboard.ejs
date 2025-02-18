@@ -1,0 +1,390 @@
+<%- include("../../views/partials/admin/header") %>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+    :root {
+        --primary: #6366f1;
+        --secondary: #4f46e5;
+        --success: #10b981;
+        --info: #3b82f6;
+        --background: #f8fafc;
+        --surface: #ffffff;
+        --text: #1e293b;
+    }
+
+    body {
+        background: var(--background);
+        color: var(--text);
+        font-family: 'Inter', sans-serif;
+    }
+
+    .dashboard-header {
+        background: var(--surface);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        padding: 1.5rem 2rem;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        box-shadow: 0 4px 30px rgba(0,0,0,0.05);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .glass-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 40px rgba(0,0,0,0.1);
+    }
+
+    .chart-container {
+        height: 420px;
+        position: relative;
+        margin: 1.5rem 0;
+    }
+
+    .metric-card {
+        padding: 1.5rem;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .metric-card::before {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 120px;
+        height: 120px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+    }
+
+    .data-nav {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .data-nav button {
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--primary);
+        transition: all 0.3s ease;
+    }
+
+    .data-nav button.active {
+        background: var(--primary);
+        color: white;
+    }
+
+    .list-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        background: var(--surface);
+        border-radius: 8px;
+        transition: transform 0.2s ease;
+    }
+
+    .list-item:hover {
+        transform: translateX(5px);
+    }
+
+    .avatar {
+        width: 40px;
+        height: 40px;
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+    }
+
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+    }
+</style>
+
+<body class="container-fluid px-4">
+    <div class="dashboard-header mb-5">
+        <h1 class="h4 fw-semibold mb-0"><i class="fas fa-chart-pie me-2"></i>Analytics Dashboard</h1>
+    </div>
+
+    <div class="row g-4">
+        <!-- Filter and Navigation -->
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <form method="GET" class="glass-card p-3" style="width: 300px;">
+                    <select name="filter" class="form-select border-0 bg-light" onchange="this.form.submit()">
+                        <option value="">All Time</option>
+                        <option value="yearly" <%= filter === "yearly" ? "selected" : "" %>>Yearly</option>
+                        <option value="monthly" <%= filter === "monthly" ? "selected" : "" %>>Monthly</option>
+                    </select>
+                </form>
+                
+                <div class="data-nav">
+                    <button class="active" onclick="showProductData()">Products</button>
+                    <button onclick="showBrandData()">Brands</button>
+                    <button onclick="showCategoryData()">Categories</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="col-12">
+            <div class="glass-card p-4">
+                <div class="chart-container">
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metrics -->
+        <div class="col-md-4">
+            <div class="metric-card">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-box fa-2x me-3"></i>
+                    <div>
+                        <div class="small">Total Products</div>
+                        <h2 class="mb-0"><%= bestSellingProducts.length %></h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="metric-card" style="background: linear-gradient(135deg, #10b981, #059669);">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-wallet fa-2x me-3"></i>
+                    <div>
+                        <div class="small">Total Revenue</div>
+                        <h2 class="mb-0">₹<%= ledgerBook.reduce((acc, order) => acc + (order.totalPrice || 0), 0) %></h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="metric-card" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-shopping-cart fa-2x me-3"></i>
+                    <div>
+                        <div class="small">Total Orders</div>
+                        <h2 class="mb-0"><%= ledgerBook.length %></h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Lists -->
+        <div class="col-md-4">
+            <div class="glass-card p-4">
+                <h5 class="fw-semibold mb-4"><i class="fas fa-chart-line me-2"></i>Top Products</h5>
+                <div class="list-group">
+                    <% bestSellingProducts.forEach(product => { %>
+                    <div class="list-item">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar me-3">
+                                <%= product.product.productName.charAt(0) %>
+                            </div>
+                            <div>
+                                <div class="fw-medium"><%= product.product.productName %></div>
+                                <small class="text-muted"><%= product.totalQuantity %> sold</small>
+                            </div>
+                        </div>
+                        <span class="badge bg-primary rounded-pill"><%= product.totalQuantity %></span>
+                    </div>
+                    <% }) %>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="glass-card p-4">
+                <h5 class="fw-semibold mb-4"><i class="fas fa-tags me-2"></i>Top Categories</h5>
+                <div class="list-group">
+                    <% bestSellingCategories.forEach(category => { %>
+                    <div class="list-item">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar me-3" style="background: #10b981;">
+                                <%= category.name.charAt(0) %>
+                            </div>
+                            <div>
+                                <div class="fw-medium"><%= category.name %></div>
+                                <small class="text-muted"><%= category.totalSold %> sold</small>
+                            </div>
+                        </div>
+                        <span class="badge bg-success rounded-pill"><%= category.totalSold %></span>
+                    </div>
+                    <% }) %>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="glass-card p-4">
+                <h5 class="fw-semibold mb-4"><i class="fas fa-copyright me-2"></i>Top Brands</h5>
+                <div class="list-group">
+                    <% bestSellingBrands.forEach(brand => { %>
+                    <div class="list-item">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar me-3" style="background: #f59e0b;">
+                                <%= brand._id.charAt(0) %>
+                            </div>
+                            <div>
+                                <div class="fw-medium"><%= brand._id %></div>
+                                <small class="text-muted"><%= brand.totalSold %> sold</small>
+                            </div>
+                        </div>
+                        <span class="badge bg-warning rounded-pill"><%= brand.totalSold %></span>
+                    </div>
+                    <% }) %>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Orders -->
+        <div class="col-12">
+            <div class="glass-card p-4">
+                <h5 class="fw-semibold mb-4"><i class="fas fa-receipt me-2"></i>Recent Orders</h5>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% ledgerBook.forEach(order => { %>
+                            <tr>
+                                <td class="fw-medium">#<%= order.orderId %></td>
+                                <td>
+                                    <% if (order.userId) { %>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar me-3">
+                                            <%= order.userId.name.charAt(0) %>
+                                        </div>
+                                        <div>
+                                            <div class="fw-medium"><%= order.userId.name %></div>
+                                            <small class="text-muted"><%= order.userId.email %></small>
+                                        </div>
+                                    </div>
+                                    <% } else { %>
+                                    <span class="text-muted">Guest</span>
+                                    <% } %>
+                                </td>
+                                <td>₹<%= order.totalPrice %></td>
+                                <td>
+                                    <span class="status-badge <%= order.payment.status === 'paid' ? 'bg-success' : 'bg-warning' %>">
+                                        <%= order.payment.status %>
+                                    </span>
+                                </td>
+                                <td><%= order.createdOn ? order.createdOn.toLocaleDateString() : "N/A" %></td>
+                            </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const chartColors = {
+            products: { bg: 'rgba(99, 102, 241, 0.2)', border: 'rgba(99, 102, 241, 1)' },
+            categories: { bg: 'rgba(16, 185, 129, 0.2)', border: 'rgba(16, 185, 129, 1)' },
+            brands: { bg: 'rgba(245, 158, 11, 0.2)', border: 'rgba(245, 158, 11, 1)' }
+        };
+
+        const productLabels = <%- JSON.stringify(bestSellingProducts.map(p => p.product?.productName || `Prod ${p._id}`)) %>;
+        const productData = <%- JSON.stringify(bestSellingProducts.map(p => p.totalQuantity)) %>;
+
+        const brandLabels = <%- JSON.stringify(bestSellingBrands.map(b => b._id)) %>;
+        const brandData = <%- JSON.stringify(bestSellingBrands.map(b => b.totalSold)) %>;
+
+        const categoryLabels = <%- JSON.stringify(bestSellingCategories.map(c => c.name)) %>;
+        const categoryData = <%- JSON.stringify(bestSellingCategories.map(c => c.totalSold)) %>;
+
+        let myChart;
+
+        function initChart(labels, data, type) {
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            
+            if (myChart) myChart.destroy();
+
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `Top ${type}`,
+                        data: data,
+                        backgroundColor: chartColors[type.toLowerCase()].bg,
+                        borderColor: chartColors[type.toLowerCase()].border,
+                        borderWidth: 2,
+                        borderRadius: 8,
+                        barPercentage: 0.7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'white',
+                            titleColor: '#1e293b',
+                            bodyColor: '#64748b',
+                            borderColor: '#e2e8f0',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#f1f5f9' },
+                            ticks: { color: '#64748b' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#64748b' }
+                        }
+                    }
+                }
+            });
+
+            // Update active button
+            document.querySelectorAll('.data-nav button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function showProductData() { initChart(productLabels, productData, 'Products'); }
+        function showBrandData() { initChart(brandLabels, brandData, 'Brands'); }
+        function showCategoryData() { initChart(categoryLabels, categoryData, 'Categories'); }
+
+        // Initial chart
+        showProductData();
+    </script>
+
+<%- include("../../views/partials/admin/footer") %>

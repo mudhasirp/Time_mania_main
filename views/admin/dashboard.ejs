@@ -139,11 +139,7 @@
                     </select>
                 </form>
                 
-                <div class="data-nav">
-                    <button class="active" onclick="showProductData()">Products</button>
-                    <button onclick="showBrandData()">Brands</button>
-                    <button onclick="showCategoryData()">Categories</button>
-                </div>
+               
             </div>
         </div>
 
@@ -259,132 +255,119 @@
         </div>
 
         <!-- Recent Orders -->
-        <div class="col-12">
-            <div class="glass-card p-4">
-                <h5 class="fw-semibold mb-4"><i class="fas fa-receipt me-2"></i>Recent Orders</h5>
-                <div class="table-responsive">
-                    <table class="table align-middle">
-                        <thead>
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Customer</th>
-                                <th>Amount</th>
-                                <th>Status</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% ledgerBook.forEach(order => { %>
-                            <tr>
-                                <td class="fw-medium">#<%= order.orderId %></td>
-                                <td>
-                                    <% if (order.userId) { %>
-                                    <div class="d-flex align-items-center">
-                                        <div class="avatar me-3">
-                                            <%= order.userId.name.charAt(0) %>
-                                        </div>
-                                        <div>
-                                            <div class="fw-medium"><%= order.userId.name %></div>
-                                            <small class="text-muted"><%= order.userId.email %></small>
-                                        </div>
-                                    </div>
-                                    <% } else { %>
-                                    <span class="text-muted">Guest</span>
-                                    <% } %>
-                                </td>
-                                <td>₹<%= order.totalPrice %></td>
-                                <td>
-                                    <span class="status-badge <%= order.payment.status === 'paid' ? 'bg-success' : 'bg-warning' %>">
-                                        <%= order.payment.status %>
-                                    </span>
-                                </td>
-                                <td><%= order.createdOn ? order.createdOn.toLocaleDateString() : "N/A" %></td>
-                            </tr>
-                            <% }) %>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+        
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        const chartColors = {
-            products: { bg: 'rgba(99, 102, 241, 0.2)', border: 'rgba(99, 102, 241, 1)' },
-            categories: { bg: 'rgba(16, 185, 129, 0.2)', border: 'rgba(16, 185, 129, 1)' },
-            brands: { bg: 'rgba(245, 158, 11, 0.2)', border: 'rgba(245, 158, 11, 1)' }
-        };
+        const orderLabels = <%- JSON.stringify(ordersByDate.map(order => {
+    const date = new Date(order._id);
+    return filter === "yearly" 
+        ? date.toLocaleString('default', { month: 'short' })
+        : date.toLocaleDateString('default', { month: 'short', day: 'numeric' });
+})) %>;
 
-        const productLabels = <%- JSON.stringify(bestSellingProducts.map(p => p.product?.productName || `Prod ${p._id}`)) %>;
-        const productData = <%- JSON.stringify(bestSellingProducts.map(p => p.totalQuantity)) %>;
+const orderCounts = <%- JSON.stringify(ordersByDate.map(order => order.orderCount)) %>;
+const orderRevenue = <%- JSON.stringify(ordersByDate.map(order => order.totalRevenue)) %>;
 
-        const brandLabels = <%- JSON.stringify(bestSellingBrands.map(b => b._id)) %>;
-        const brandData = <%- JSON.stringify(bestSellingBrands.map(b => b.totalSold)) %>;
+let myChart;
 
-        const categoryLabels = <%- JSON.stringify(bestSellingCategories.map(c => c.name)) %>;
-        const categoryData = <%- JSON.stringify(bestSellingCategories.map(c => c.totalSold)) %>;
+function initChart() {
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    
+    if (myChart) myChart.destroy();
 
-        let myChart;
-
-        function initChart(labels, data, type) {
-            const ctx = document.getElementById('salesChart').getContext('2d');
-            
-            if (myChart) myChart.destroy();
-
-            myChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: `Top ${type}`,
-                        data: data,
-                        backgroundColor: chartColors[type.toLowerCase()].bg,
-                        borderColor: chartColors[type.toLowerCase()].border,
-                        borderWidth: 2,
-                        borderRadius: 8,
-                        barPercentage: 0.7
-                    }]
+    myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: orderLabels,
+            datasets: [
+                {
+                    label: 'Number of Orders',
+                    data: orderCounts,
+                    borderColor: 'rgba(99, 102, 241, 1)',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    yAxisID: 'y',
+                    tension: 0.4,
+                    fill: true
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: 'white',
-                            titleColor: '#1e293b',
-                            bodyColor: '#64748b',
-                            borderColor: '#e2e8f0',
-                            borderWidth: 1
-                        }
+                {
+                    label: 'Revenue (₹)',
+                    data: orderRevenue,
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    yAxisID: 'y1',
+                    tension: 0.4,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'white',
+                    titleColor: '#1e293b',
+                    bodyColor: '#64748b',
+                    borderColor: '#e2e8f0',
+                    borderWidth: 1,
+                    padding: 12
+                }
+            },
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Number of Orders'
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: '#f1f5f9' },
-                            ticks: { color: '#64748b' }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: '#64748b' }
-                        }
+                    grid: {
+                        color: '#f1f5f9'
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'Revenue (₹)'
+                    },
+                    grid: {
+                        drawOnChartArea: false
+                    }
+                },
+                x: {
+                    grid: {
+                        color: '#f1f5f9'
+                    },
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45
                     }
                 }
-            });
-
-            // Update active button
-            document.querySelectorAll('.data-nav button').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            }
         }
+    });
+}
 
-        function showProductData() { initChart(productLabels, productData, 'Products'); }
-        function showBrandData() { initChart(brandLabels, brandData, 'Brands'); }
-        function showCategoryData() { initChart(categoryLabels, categoryData, 'Categories'); }
-
-        // Initial chart
-        showProductData();
+// Initial chart
+initChart();
     </script>
 
 <%- include("../../views/partials/admin/footer") %>

@@ -11,10 +11,7 @@ const Wallet = require("../models/walletSchema")
 const loadHomepage = async (req, res) => {
     try {
 
-        console.log("Session User:", req.session.user);
-        console.log("Authenticated User (Passport):", req.user);
-
-
+        
         let userData = null;
 
         if (req.user) {
@@ -41,7 +38,6 @@ const loadHomepage = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error loading homepage:", error);
         res.status(500).send("Server Error");
     }
 };
@@ -57,7 +53,6 @@ const loadSignup = async (req, res) => {
     try {
         return res.render('signup')
     } catch (error) {
-        console.log("Home Page not loading");
         res.status(500).send("Server Error");
     }
 }
@@ -91,7 +86,6 @@ async function sendverificationemail(email, otp) {
         })
         return info.accepted.length > 0
     } catch (error) {
-        console.log("error sending email", error)
         return false
     }
 }
@@ -106,6 +100,9 @@ const filterProduct = async (req, res) => {
             sort,
             page = 1
         } = req.query;
+        const originalCategorySelection = Array.isArray(categoryFilter) ? categoryFilter : categoryFilter ? [categoryFilter] : [];
+        const originalBrandSelection = Array.isArray(brandFilter) ? brandFilter : brandFilter ? [brandFilter] : [];
+// In your controller, add this right after you define originalCategorySelection and originalBrandSelection
 
         const limit = 6;
         const skip = (page - 1) * limit;
@@ -212,8 +209,8 @@ const filterProduct = async (req, res) => {
             brand: allBrands,
             totalPages,
             currentPage: parseInt(page),
-            selectedCategory: validCategoryIds,
-            selectedBrand: validBrandIds,
+            selectedCategory: originalCategorySelection, // Use original selections here
+            selectedBrand: originalBrandSelection,
             minPrice: minPrice || '',
             maxPrice: maxPrice || '',
             isFiltered: true,
@@ -222,7 +219,6 @@ const filterProduct = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error filtering products:", error);
         res.redirect("/pageNotFound");
     }
 };
@@ -250,8 +246,7 @@ const signup = async (req, res) => {
             return res.json("email-error")
         }
         req.session.userOtp = otp;
-        console.log(phone)
-        console.log(req.session.userData)
+       
         req.session.userData = { name, phone, email, password, referrerId: referrer ? referrer._id : null };
 
         console.log("session send", req.session.userOtp)
@@ -260,7 +255,6 @@ const signup = async (req, res) => {
         console.log("OTP sent", otp)
 
     } catch (error) {
-        console.error("signyp error", error)
 
     }
 }
@@ -334,7 +328,6 @@ const verifyOtp = async (req, res) => {
             res.status(500).json({ success: false, message: "Invalid OTP, please try again" });
         }
     } catch (error) {
-        console.error("Error verifying OTP:", error);
         res.status(500).json({ success: false, message: "An error occurred" });
     }
 };
@@ -358,7 +351,6 @@ const resendOtp = async (req, res) => {
 
         }
     } catch (error) {
-        console.error("error occured");
         res.status(500).json({ success: false, message: "Failer To Resend Otp" })
 
     }
@@ -378,33 +370,27 @@ const loadlogin = async (req, res) => {
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
-        console.log(email, password)
         const findUser = await User.findOne({
             isAdmin: 0,
             email: email
         })
         if (!findUser) {
             return res.render("login", { message: "User not found" })
-            console.log("error")
         }
         if (findUser.isBlocked) {
             return res.render("login", { message: "User is blocked by admin" })
-            console.log("error")
 
         }
         const passwordMatch = await bcrypt.compare(password, findUser.password);
         if (!passwordMatch) {
             return res.render('login', { message: "Incorrect password" })
-            console.log("error")
 
 
         }
         req.session.user = findUser._id;
-        console.log("success")
 
         res.redirect("/")
     } catch (error) {
-        console.error("Login error");
         res.render("login", { message: "login failed pls try again" });
     }
 }
@@ -412,13 +398,11 @@ const logout = async (req, res) => {
     try {
         req.session.destroy((err) => {
             if (err) {
-                console.log("Session destruction error:", err.message);
                 return res.redirect("/pageNotFound");
             }
             return res.redirect("/login");
         });
     } catch (error) {
-        console.log("Logout error:", error);
         res.redirect("/pageNotFound");
     }
 };
@@ -496,52 +480,148 @@ const loadShoppingPage = async (req, res) => {
 };
 const searchProducts = async (req, res) => {
     try {
-        const user = req.session.user;
-        const userData = await User.findOne({ _id: user })
-        let search = req.body.query
-        const brands = await Brand.find({}).lean()
-        const categories = await Category.find({ isListed: true }).lean()
-        const categoryIds = categories.map(category => category._id.toString())
-        let searchResult = [];
-        if (req.session.filteredProducts && req.session.filteredProducts.length > 0) {
-            searchResult = req.session.filteredProducts.filter(product =>
-                product.productName.toLowerCase().includes(search.toLowerCase())
-            )
-        } else {
-            searchResult = await Product.find({
-                productName: { $regex: ".*" + search + ".*", $options: "i" },
-                isBlocked: false,
-                quantity: { $gt: 0 },
-                category: { $in: categoryIds }
-            })
+        const userId = req.session.user;
+        
+        const search = (req.method === 'POST' ? req.body.query : req.query.query) || '';
+        
+        const page = parseInt(req.query.page) || 1;
+        const limit = 6;
+        const skip = (page - 1) * limit;
+
+        // Get filter parameters
+        let {
+            category: categoryFilter,
+            brand: brandFilter,
+            minPrice,
+            maxPrice,
+            sort
+        } = req.method === 'POST' ? req.body : req.query;
+
+        const query = {
+            isBlocked: false,
+            quantity: { $gt: 0 }
+        };
+
+        if (search && search.trim()) {
+            query.productName = { 
+                $regex: new RegExp(search.trim(), "i")
+            };
         }
-        searchResult.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        let itemsPerPage = 6;
-        let currentPage = parseInt(req.query.page) || 1;
-        let startIndex = (currentPage - 1) * itemsPerPage
-        let endIndex = startIndex + itemsPerPage
-        let totalPages = Math.ceil(searchResult.length / itemsPerPage)
-        let currentProduct = searchResult.slice(startIndex, endIndex)
+
+        if (categoryFilter) {
+            const validCategoryIds = Array.isArray(categoryFilter) 
+                ? categoryFilter.filter(id => mongoose.Types.ObjectId.isValid(id))
+                : [categoryFilter].filter(id => mongoose.Types.ObjectId.isValid(id));
+            
+            if (validCategoryIds.length > 0) {
+                query.category = { 
+                    $in: validCategoryIds.map(id => new mongoose.Types.ObjectId(id)) 
+                };
+            }
+        }
+
+        if (brandFilter) {
+            const validBrandIds = Array.isArray(brandFilter)
+                ? brandFilter.filter(id => mongoose.Types.ObjectId.isValid(id))
+                : [brandFilter].filter(id => mongoose.Types.ObjectId.isValid(id));
+            
+            if (validBrandIds.length > 0) {
+                const foundBrands = await Brand.find({ _id: { $in: validBrandIds } });
+                const brandNames = foundBrands.map(b => b.brandName);
+                query.brand = { $in: brandNames };
+            }
+        }
+
+        if (minPrice || maxPrice) {
+            query.salePrice = {};
+            if (minPrice && !isNaN(minPrice)) {
+                query.salePrice.$gte = Number(minPrice);
+            }
+            if (maxPrice && !isNaN(maxPrice)) {
+                query.salePrice.$lte = Number(maxPrice);
+            }
+        }
+
+        let sortOption = {};
+        switch (sort) {
+            case 'popularity':
+                sortOption = { quantity: -1 };
+                break;
+            case 'priceLowToHigh':
+                sortOption = { salePrice: 1 };
+                break;
+            case 'priceHighToLow':
+                sortOption = { salePrice: -1 };
+                break;
+            case 'newArrivals':
+                sortOption = { createdAt: -1 };
+                break;
+            case 'aToZ':
+                sortOption = { productName: 1 };
+                break;
+            case 'zToA':
+                sortOption = { productName: -1 };
+                break;
+            case 'averageRatings':
+                sortOption = { rating: -1 };
+                break;
+            case 'featured':
+                query.featured = true;
+                sortOption = { createdAt: -1 };
+                break;
+            default:
+                sortOption = { createdAt: -1 };
+        }
+
+        const totalProducts = await Product.countDocuments(query);
+        const products = await Product.find(query)
+            .sort(sortOption)
+            .skip(skip)
+            .limit(limit)
+            .lean();
+
+        const categories = await Category.find({ isListed: true }).lean();
+        const brands = await Brand.find({}).lean();
+        const userData = userId ? await User.findById(userId) : null;
+
+        const totalPages = Math.ceil(totalProducts / limit);
+
+        if (req.method === 'POST') {
+            const queryString = new URLSearchParams({
+                query: search,
+                sort: sort || '',
+                minPrice: minPrice || '',
+                maxPrice: maxPrice || '',
+                page: page,
+                ...(categoryFilter && { category: categoryFilter }),
+                ...(brandFilter && { brand: brandFilter })
+            }).toString();
+            return res.redirect(`/search?${queryString}`);
+        }
+
         res.render("shop", {
             user: userData,
-            products: currentProduct,
+            products,
             category: categories,
             brand: brands,
             totalPages,
-            currentPage,
-            count: searchResult.length,
-            selectedCategory: [],
-            selectedBrand: [],
-            sort: req.query.sort || 'popularity',
-            minPrice:  '',
-            maxPrice:  '',
+            currentPage: page,
+            selectedCategory: Array.isArray(categoryFilter) ? categoryFilter : [categoryFilter],
+            selectedBrand: Array.isArray(brandFilter) ? brandFilter : (brandFilter ? [brandFilter] : []),
+        
+            minPrice: minPrice || '',
+            maxPrice: maxPrice || '',
+            isFiltered: true,
+            sort: sort || '',
+            totalProducts,
+            searchQuery: search
+        });
+        
 
-        })
     } catch (error) {
-        console.log("theres a problem with searching the product")
-        res.redirect("/pageNotFound")
+        res.redirect("/pageNotFound");
     }
-}
+};
 const changePassword = async (req, res) => {
     try {
         const userId = req.session.user; 
@@ -582,7 +662,6 @@ const changePassword = async (req, res) => {
 
         return res.json({ message: 'Password changed successfully' });
     } catch (error) {
-        console.error('Error changing password:', error);
         return res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -615,7 +694,6 @@ const filterByPrice = async (req, res) => {
 
         })
     } catch (error) {
-        console.log(error)
         res.redirect("/pageNotFound")
     }
 }

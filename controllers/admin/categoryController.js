@@ -19,7 +19,6 @@ const categoryInfo = async (req, res) => {
             totalCategories: totalCategories
         });
     } catch (error) {
-        console.log(error);
         res.redirect("/pageerror");
     }
 };
@@ -66,29 +65,48 @@ const getUnListCategory = async (req, res) => {
 
     }
 }
+
 const editCategory = async (req, res) => {
     try {
         const id = req.params.id;
         const { categoryName, description } = req.body;
-        const existingCategory = await Category.findOne({ name: categoryName });
+        const existingCategory = await Category.findOne({ 
+            name: { $regex: new RegExp("^" + categoryName + "$", "i") } 
+        });
+        
+        
         if (existingCategory) {
-            return res.status(400).json({ error: "Category exists please change categoryy name" })
+            return res.status(400).json({ 
+                error: true,
+                message: "Category already exists. Please choose a different name."
+            });
         }
-        const updateeCategory = await Category.findByIdAndUpdate(id,
+
+        const updatedCategory = await Category.findByIdAndUpdate(id,
             {
                 name: categoryName,
                 description: description
-            }, { new: true }
-        )
-        if (updateeCategory) {
-            res.redirect("/admin/category")
+            }, 
+            { new: true }
+        );
+
+        if (updatedCategory) {
+            return res.status(200).json({
+                success: true,
+                message: "Category updated successfully"
+            });
         } else {
-            res.status(404).json({ error: "Category not found" })
+            return res.status(404).json({ 
+                error: true,
+                message: "Category not found" 
+            });
         }
-
+        
     } catch (error) {
-        res.status(500).json({ error: "Internal server Error" })
-
+        return res.status(500).json({ 
+            error: true,
+            message: "Internal server error" 
+        });
     }
 }
 const getEditCategory = async (req, res) => {
@@ -129,7 +147,6 @@ const addCategoryOffer = async (req, res) => {
         res.json({ status: true, message: "Category offer applied successfully!" });
     } catch (error) {
         res.status(500).json({ status: false, message: "Internal Server Error" });
-        console.error("Error in addCategoryOffer:", error);
     }
 };
 const removeCategoryOffer = async (req, res) => {
@@ -154,7 +171,6 @@ const removeCategoryOffer = async (req, res) => {
         res.json({ status: true, message: "Category offer removed successfully!" });
     } catch (error) {
         res.status(500).json({ status: false, message: "Internal Server Error" });
-        console.error("Error in removeCategoryOffer:", error);
     }
 };
 

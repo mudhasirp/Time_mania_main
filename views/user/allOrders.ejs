@@ -230,8 +230,8 @@
                     <div class="order-details">
                         <strong>Date:</strong>
                         <%= new Date(order.createdOn).toLocaleDateString() %><br>
-                            <strong>Total Price:</strong> 
-                                ₹<%= (order.activeProductsTotal - order.discount).toLocaleString() %>
+                            <strong>Total Price(including tax):</strong> 
+                                ₹<%= ((order.activeProductsTotal+order.activeProductsTotal*0.12) - order.discount).toLocaleString() %>
                               <br>
 
 

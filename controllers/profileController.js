@@ -25,7 +25,6 @@ const resendChangePasswordOtp = async (req, res) => {
             return res.status(500).json({ success: false, message: "Failed to resend OTP" });
         }
     } catch (error) {
-        console.error("Error in resendChangePasswordOtp:", error);
         res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
@@ -55,7 +54,6 @@ const sendVerificationEmail = async (email, otp) => {
         return true;
 
     } catch (error) {
-        console.error("Error sending Email");
         return false;
     }
 }
@@ -151,7 +149,6 @@ const resendOtp = async (req, res) => {
             res.status(200).json({ success: true, message: "Resend OTP Successfull" })
         }
     } catch (error) {
-        console.log("Error in resend otp", error)
         res.status(500).json({ success: false, message: "internal server error" })
     }
 }
@@ -164,7 +161,6 @@ const postNewPassword = async (req, res) => {
             await User.updateOne(
                 { email: email }, { $set: { password: passwordHash } })
             res.redirect("/login")
-            console.log("success")
 
         } else {
             res.render("reset-password", { message: "Passwords do not match" })
@@ -200,7 +196,6 @@ const userProfile = async (req, res) => {
             wallet
         });
     } catch (error) {
-        console.error("Error retrieving profile data", error);
         res.redirect("/pageNotFound");
     }
 };
@@ -307,7 +302,6 @@ const changePasswordValid = async (req, res) => {
             })
         }
     } catch (error) {
-        console.log("Error in Change Password", Error)
         res.redirect("/pageNotFound")
     }
 }
@@ -355,7 +349,6 @@ const postAddAddress = async (req, res) => {
         res.redirect("/userProfile")
 
     } catch (error) {
-        console.error("Error adding the address", error)
         res.redirect("/pageNotFound")
     }
 }
@@ -380,7 +373,6 @@ const editAddress = async (req, res) => {
             user: user
         })
     } catch (error) {
-        console.error("Error in edit address")
         res.redirect("/pageNotFound")
     }
 }
@@ -415,15 +407,13 @@ const postEditAddress = async (req, res) => {
 
 
     } catch (error) {
-        console.log("error in edit address")
     }
 }
 const postEditAddressCart = async (req, res) => {
     const { addressId, addressType, name, city, landMark, state, pincode, phone, altPhone } = req.body;
     const userId = req.query.userId;
 
-    console.log("User ID:", userId);
-    console.log("Address ID:", addressId);
+ 
 
     try {
         const updatedUser = await Address.findOneAndUpdate(
@@ -452,7 +442,6 @@ const postEditAddressCart = async (req, res) => {
 
         res.status(200).json({ message: 'Address updated successfully!', address: updatedUser });
     } catch (error) {
-        console.error('❌ Error updating address:', error);
         res.status(500).json({ message: 'Failed to update address.', error: error.message });
     }
 };
@@ -477,7 +466,6 @@ const deleteAddress = async (req, res) => {
             })
         res.redirect("/userProfile")
     } catch (error) {
-        console.error("error in delete Adress")
     }
 }
 module.exports = {

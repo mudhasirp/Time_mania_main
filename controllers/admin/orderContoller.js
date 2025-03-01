@@ -58,7 +58,6 @@ const getOrder = async (req, res) => {
             filters: req.query
         });
     } catch (error) {
-        console.error('Order Fetch Error:', error);
 
         res.status(500).render('admin/error', {
             message: 'Error fetching orders',
@@ -108,7 +107,6 @@ const orderDetailsAdmin = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Order Details Error:', error);
         res.status(500).render('admin/error', {
             message: 'Error fetching order details',
             error: error
@@ -214,7 +212,6 @@ const updateOrderStatus = async (req, res) => {
                         { upsert: true, new: true }
                     );
 
-                    console.log('Wallet updated with refund:', wallet);
                 }
             }
 
@@ -236,7 +233,6 @@ const updateOrderStatus = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Order Status Update Error:', error);
         return res.status(500).json({
             success: false,
             message: 'Failed to update order status',

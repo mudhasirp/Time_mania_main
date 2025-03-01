@@ -6,9 +6,12 @@ const Category = require("../../models/categorySchema");
 const Order = require("../../models/orderSchema");
 const Coupon = require("../../models/couponSchema");
 const Product = require("../../models/productSchema")
+const LedgerEntry = require('../../models/ledgerSchema');
+
 const pageerror = async (req, res) => {
     res.render("admin-error")
 }
+
 const loadlogin = (req, res) => {
     if (req.session.admin) {
         return res.redirect("/admin/dashboard")
@@ -20,7 +23,7 @@ const login = async (req, res) => {
         const { email, password } = req.body;
         const admin = await User.findOne({ email, isAdmin: true });
         if (admin) {
-            const passwordMatch = bcrypt.compare(password, admin.password)
+            const passwordMatch = await bcrypt.compare(password, admin.password)
             if (passwordMatch) {
                 req.session.admin = true;
                 return res.redirect("/admin")
@@ -33,7 +36,6 @@ const login = async (req, res) => {
         }
 
     } catch (error) {
-        console.log("login error", error);
         return res.redirect("/pageerror")
 
 
@@ -41,8 +43,8 @@ const login = async (req, res) => {
 }
 const loadDashboard = async (req, res) => {
     try {
-        const { filter } = req.query; 
-
+        const { filter } = req.query;
+        
         let startDate, endDate;
         const now = new Date();
         
@@ -58,6 +60,23 @@ const loadDashboard = async (req, res) => {
         if (startDate && endDate) {
             dateFilter.createdOn = { $gte: startDate, $lte: endDate };
         }
+
+        const ordersByDate = await Order.aggregate([
+            { $match: dateFilter },
+            {
+                $group: {
+                    _id: {
+                        $dateToString: {
+                            format: filter === "yearly" ? "%Y-%m" : "%Y-%m-%d",
+                            date: "$createdOn"
+                        }
+                    },
+                    orderCount: { $sum: 1 },
+                    totalRevenue: { $sum: "$totalPrice" }
+                }
+            },
+            { $sort: { "_id": 1 } }
+        ]);
 
         
         const bestSellingProducts = await Order.aggregate([
@@ -154,10 +173,10 @@ const loadDashboard = async (req, res) => {
             bestSellingCategories,
             bestSellingBrands,
             ledgerBook,
-            filter
+            filter,
+            ordersByDate,
         });
     } catch (error) {
-        console.error("Error loading dashboard:", error);
         res.status(500).send("Server Error");
     }
 };
@@ -167,7 +186,6 @@ const logout = async (req, res) => {
     try {
         req.session.destroy(err => {
             if (err) {
-                console.log("error destroying session", err)
                 return res.redirect("/pageerror")
             }
 
@@ -175,11 +193,11 @@ const logout = async (req, res) => {
         }
         )
     } catch (error) {
-        console.log("unexprected error during logout", error)
         res.redirect("/pageerror")
     }
 }
 module.exports =
 {
+    
     loadlogin, login, loadDashboard, pageerror, logout
 }

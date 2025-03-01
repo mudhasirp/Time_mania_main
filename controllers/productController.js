@@ -25,7 +25,6 @@ const productDetails = async (req, res) => {
             ratingCount: product.ratingCount || 0
         });
     } catch (error) {
-        console.log("Error fetching product details:", error);
         res.redirect("/pageNotFound");
     }
 };
@@ -57,7 +56,6 @@ const submitRating = async (req, res) => {
 
         res.redirect(`/productDetails?id=${productId}&success=Rating submitted successfully`);
     } catch (error) {
-        console.log("Error submitting rating:", error);
 
         res.redirect(`/productDetails?id=${productId}&error=Something went wrong. Please try again later.`);
     }

@@ -56,7 +56,6 @@
     display: flex;
     gap: 20px;
   }
-
   /* Sidebar styling */
   aside.sidebar {
     width: 250px;
@@ -66,11 +65,9 @@
     padding: 20px;
     text-align: center;
   }
-
   .filter-section {
     margin-bottom: 20px;
   }
-
   .filter-title {
     font-size: 16px;
     font-weight: bold;
@@ -78,17 +75,14 @@
     color: #333;
     text-align: center;
   }
-
   .category-brand-container ul {
     list-style: none;
     padding: 0;
     margin: 0;
   }
-
   .filter-item {
     margin: 10px 0;
   }
-
   /* Custom Checkbox Styling */
   .custom-checkbox {
     display: flex;
@@ -99,8 +93,6 @@
     font-size: 14px;
     color: #333;
   }
-
-  /* Hide the default checkbox */
   .custom-checkbox input[type="checkbox"] {
     position: absolute;
     opacity: 0;
@@ -108,8 +100,7 @@
     height: 0;
     width: 0;
   }
-
-  /* Custom checkbox square */
+  
   .checkbox-mark {
     height: 18px;
     width: 18px;
@@ -121,7 +112,6 @@
     position: relative;
   }
 
-  /* Checkmark when checked */
   .custom-checkbox input[type="checkbox"]:checked ~ .checkbox-mark:after {
     content: "";
     position: absolute;
@@ -133,18 +123,13 @@
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
   }
-
-  /* Change background when checked */
   .custom-checkbox input[type="checkbox"]:checked ~ .checkbox-mark {
     background-color: #007bff;
     border-color: #007bff;
   }
-
   .checkbox-text {
     display: inline-block;
   }
-
-  /* Apply Filters button styling */
   .apply-button {
     display: inline-block;
     width: 100%;
@@ -158,20 +143,18 @@
     text-align: center;
     transition: background-color 0.3s;
   }
-
   .apply-button:hover {
     background-color: #0056b3;
   }
-
-  /* Product grid styling */
   main.product-grid {
     flex: 1;
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
-    justify-content: space-between;
-  }
+    justify-content: flex-start; 
+    align-items:flex-start;
 
+  }
   .product-card {
     width: calc(33.333% - 20px);
     border: 1px solid #ddd;
@@ -181,13 +164,11 @@
     position: relative;
     box-sizing: border-box;
   }
-
   .product-card img {
     max-width: 100%;
     height: auto;
     border-radius: 5px;
   }
-
   .wishlist-btn {
     position: absolute;
     top: 8px;
@@ -198,7 +179,6 @@
     border-radius: 50%;
     cursor: pointer;
   }
-
   .add-to-cart-btn {
     background-color: #000;
     color: white;
@@ -211,11 +191,9 @@
     width: 100%;
     margin-top: 10px;
   }
-
   .add-to-cart-btn:hover {
     background-color: #0056b3;
   }
-
   /* Pagination styling */
   .pagination {
     display: flex;
@@ -223,7 +201,6 @@
     gap: 10px;
     margin: 20px 0;
   }
-
   .pagination a {
     padding: 8px 12px;
     background-color: #f0f0f0;
@@ -231,7 +208,6 @@
     color: #333;
     text-decoration: none;
   }
-
   .pagination .active {
     background-color: #007bff;
     color: #fff;
@@ -239,13 +215,11 @@
   .price-range-container {
   padding: 10px;
 }
-
 .price-inputs {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
-
 .price-input-group {
   display: flex;
   flex-direction: column;
@@ -267,7 +241,6 @@
   outline: none;
   transition: border-color 0.3s;
 }
-
 .price-input:focus {
   border-color: #1e918b;
 }
@@ -293,6 +266,7 @@
 .clear-button:hover {
   background-color: #999;
 }
+
 .a
 {
   background: black !important;
@@ -306,20 +280,51 @@
       <div class="search-bar">
         <form action="/search" method="POST" class="search-form">
           <input type="text" name="query" placeholder="Search items..." class="search-input" />
-          <button type="submit" class="search-button ddd a">Search</button>
+          <input type="hidden" name="sort" value="<%= sort %>" />
+          <% if (selectedCategory) { %>
+            <% selectedCategory.forEach(cat => { %>
+              <input type="hidden" name="category" value="<%= cat %>" />
+            <% }) %>
+          <% } %>
+          <% if (selectedBrand) { %>
+            <% selectedBrand.forEach(brand => { %>
+              <input type="hidden" name="brand" value="<%= brand %>" />
+            <% }) %>
+          <% } %>
+          <input type="hidden" name="minPrice" value="<%= minPrice %>" />
+          <input type="hidden" name="maxPrice" value="<%= maxPrice %>" />
+          <button type="submit" class="search-button">Search</button>
         </form>
       </div>
       <% let currentSort = typeof sort !== 'undefined' ? sort : 'popularity'; %>
+
+      <!-- In the sort section -->
 <div class="sort-section">
-  <form method="get" action="/filter">
+  <form method="get" action="/filter" id="sortForm">
+    <% if (selectedCategory && selectedCategory.length > 0) { %>
+      <% selectedCategory.forEach(cat => { %>
+        <input type="hidden" name="category" value="<%= cat %>">
+      <% }); %>
+    <% } %>
+    
+    <% if (selectedBrand && selectedBrand.length > 0) { %>
+      <% selectedBrand.forEach(b => { %>
+        <input type="hidden" name="brand" value="<%= b %>">
+      <% }); %>
+    <% } %>
+    
+    <input type="hidden" name="minPrice" value="<%= minPrice || '' %>">
+    <input type="hidden" name="maxPrice" value="<%= maxPrice || '' %>">
+    
+    <!-- Sorting Dropdown -->
     <select class="sort-dropdown" name="sort" onchange="this.form.submit()">
-      <option value="popularity" <%= currentSort === 'popularity' ? 'selected' : '' %>>Popularity</option>
-      <option value="priceLowToHigh" <%= currentSort === 'priceLowToHigh' ? 'selected' : '' %>>Price: Low to High</option>
-      <option value="priceHighToLow" <%= currentSort === 'priceHighToLow' ? 'selected' : '' %>>Price: High to Low</option>
-      <option value="averageRatings" <%= currentSort === 'averageRatings' ? 'selected' : '' %>>Average Ratings</option>
-      <option value="newArrivals" <%= currentSort === 'newArrivals' ? 'selected' : '' %>>New Arrivals</option>
-      <option value="aToZ" <%= currentSort === 'aToZ' ? 'selected' : '' %>>A - Z</option>
-      <option value="zToA" <%= currentSort === 'zToA' ? 'selected' : '' %>>Z - A</option>
+      <option value="popularity" <%= sort === 'popularity' ? 'selected' : '' %>>Popularity</option>
+      <option value="priceLowToHigh" <%= sort === 'priceLowToHigh' ? 'selected' : '' %>>Price: Low to High</option>
+      <option value="priceHighToLow" <%= sort === 'priceHighToLow' ? 'selected' : '' %>>Price: High to Low</option>
+      <option value="averageRatings" <%= sort === 'averageRatings' ? 'selected' : '' %>>Average Ratings</option>
+      <option value="newArrivals" <%= sort === 'newArrivals' ? 'selected' : '' %>>New Arrivals</option>
+      <option value="aToZ" <%= sort === 'aToZ' ? 'selected' : '' %>>A - Z</option>
+      <option value="zToA" <%= sort === 'zToA' ? 'selected' : '' %>>Z - A</option>
     </select>
   </form>
 </div>
@@ -332,6 +337,7 @@
       <aside class="sidebar">
         <form action="/filter" method="GET" class="filter-form">
           <!-- Categories Filter -->
+          <input type="hidden" name="apply" value="true">
           <div class="filter-section">
             <div class="filter-title">Categories</div>
             <div class="category-brand-container">
@@ -401,7 +407,8 @@
           </div>
           <button type="submit" class="apply-button a">Apply Filters</button>
         </form>
-        <button type="button" class="clear-button" onclick="window.location.href='/shop'">Clear Filters</button>
+        <button type="button" class="clear-button" onclick="clearAllFilters()">Clear Filters</button>
+
       </aside>
       
       <!-- Product Grid -->
@@ -508,5 +515,92 @@ if (maxPrice) {
         })
       }
     })
+  } 
+  document.addEventListener('DOMContentLoaded', function() {
+  // Store filter selections in sessionStorage to preserve across page loads
+  const filterForm = document.querySelector('.filter-form');
+  
+  // Track checkbox changes immediately, not just on form submit
+  const allCheckboxes = document.querySelectorAll('input[name="category"], input[name="brand"]');
+  allCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', updateSelectionStorage);
+  });
+  
+  // Add the form submit handler to store current selections
+  filterForm.addEventListener('submit', function(e) {
+    updateSelectionStorage();
+    
+    // Check if there's an apply=true param, indicating this is a fresh filter application
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('apply') === 'true') {
+      // Clear previous selections and use only what's currently checked
+      const currentCategories = Array.from(document.querySelectorAll('input[name="category"]:checked'))
+        .map(cb => cb.value);
+      const currentBrands = Array.from(document.querySelectorAll('input[name="brand"]:checked'))
+        .map(cb => cb.value);
+        
+      sessionStorage.setItem('selectedCategories', JSON.stringify(currentCategories));
+      sessionStorage.setItem('selectedBrands', JSON.stringify(currentBrands));
+    }
+  });
+  
+  function updateSelectionStorage() {
+    // Get ALL selected categories (this will exclude unchecked ones)
+    const categoryCheckboxes = document.querySelectorAll('input[name="category"]:checked');
+    const categories = Array.from(categoryCheckboxes).map(cb => cb.value);
+    
+    // Get ALL selected brands
+    const brandCheckboxes = document.querySelectorAll('input[name="brand"]:checked');
+    const brands = Array.from(brandCheckboxes).map(cb => cb.value);
+    
+    // Always update sessionStorage with current state (even if empty)
+    sessionStorage.setItem('selectedCategories', JSON.stringify(categories));
+    sessionStorage.setItem('selectedBrands', JSON.stringify(brands));
   }
+  
+  // Restore selections if page is refreshed or navigated back to
+  try {
+    const storedCategories = JSON.parse(sessionStorage.getItem('selectedCategories')) || [];
+    const storedBrands = JSON.parse(sessionStorage.getItem('selectedBrands')) || [];
+    
+    // Only restore if we have stored values and no explicit selections in the URL
+    if (document.querySelectorAll('input[name="category"]:checked').length === 0) {
+      // First clear all checkboxes to ensure we only check what's in storage
+      document.querySelectorAll('input[name="category"]').forEach(cb => cb.checked = false);
+      
+      // Then check only what was stored
+      storedCategories.forEach(catId => {
+        const checkbox = document.querySelector(`input[name="category"][value="${catId}"]`);
+        if (checkbox) checkbox.checked = true;
+      });
+    }
+    
+    if (document.querySelectorAll('input[name="brand"]:checked').length === 0) {
+      // First clear all checkboxes
+      document.querySelectorAll('input[name="brand"]').forEach(cb => cb.checked = false);
+      
+      // Then check only what was stored
+      storedBrands.forEach(brandId => {
+        const checkbox = document.querySelector(`input[name="brand"][value="${brandId}"]`);
+        if (checkbox) checkbox.checked = true;
+      });
+    }
+  } catch (e) {
+    console.error('Error restoring filter selections', e);
+  }
+});
+
+function clearAllFilters() {
+  // Clear sessionStorage
+  sessionStorage.removeItem('selectedCategories');
+  sessionStorage.removeItem('selectedBrands');
+  
+  // Uncheck all checkboxes before redirecting
+  document.querySelectorAll('input[name="category"], input[name="brand"]').forEach(cb => {
+    cb.checked = false;
+  });
+  
+  // Redirect to shop page with no filters
+  window.location.href = '/shop';
+}
 </script>

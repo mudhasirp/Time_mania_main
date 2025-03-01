@@ -363,7 +363,10 @@
                       <form action="/addToCart" method="POST">
                         <input type="hidden" name="productId" value="<%= product._id %>">
                         <button type="submit" class="button button-add-to-cart">Add to Cart</button>
-                        <a class="action-btn hover-up" href="/addToWishlist"><i class="fi-rs-heart"></i></a>
+                        <a href="#" class="action-btn hover-up" onclick="addToWishlist('<%= product._id %>'); return false;">
+                          <i class="fi-rs-heart"></i>
+                      </a>
+                      
                       </form>
                     </div>
 
@@ -440,7 +443,17 @@
         text: 'This product is currently unavailable',
         confirmButtonColor: '#000000'
       });
-    } else if (error === 'product_not_found') {
+    } 
+    else if(error==='more_than_five')
+      {
+        Swal.fire({
+        icon: 'error',
+        title: 'Cannot add more than 5',
+        text: 'This product is currently unavailable',
+        confirmButtonColor: '#000000'
+      });
+      }
+    else if (error === 'product_not_found') {
       Swal.fire({
         icon: 'error',
         title: 'Product Not Found',
@@ -453,5 +466,36 @@
       const cleanURL = window.location.protocol + '//' + window.location.host + window.location.pathname;
       window.history.replaceState({}, document.title, cleanURL);
     }
+    function addToWishlist(productId) {
+    $.ajax({
+      url: "/addToWishlist",
+      method: "POST",
+      data: { productId: productId },
+      success: (response) => {
+        if (response.status) {
+          Swal.fire({
+            title: "Added to wishlist",
+            text: "The product has been added to your wishlist",
+            icon: "success",
+            timer: 2000,
+          })
+        } else {
+          Swal.fire({
+            title: "Already in wishlist",
+            text: response.message,
+            timer: 2000,
+          })
+        }
+      },
+      error: (error) => {
+        Swal.fire({
+          title: "Error",
+          text: "There was an error adding the product to your wishlist",
+          icon: "error",
+          timer: 2000
+        })
+      }
+    })
+  } 
   </script>
   <%- include("../../views/partials/user/footer") %>

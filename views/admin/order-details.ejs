@@ -184,10 +184,15 @@
                                         Discount
                                         <span>- ₹<%= order.discount.toFixed(2) %></span>
                                     </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Tax
+                                        <span>- ₹<%= (order.activeTotal * 0.12).toFixed(2) %></span>
+
+                                    </li>
                                     <li
                                         class="list-group-item d-flex justify-content-between align-items-center fw-bold">
                                         Final Amount
-                                        <span>₹<%= (order.activeTotal - order.discount).toFixed(2) %>
+                                        <span>₹<%= ((order.activeTotal+order.activeTotal*0.12) - order.discount).toFixed(2) %>
                                         </span>
                                     </li>
                         </ul>

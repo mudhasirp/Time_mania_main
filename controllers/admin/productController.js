@@ -57,8 +57,6 @@ const addProducts = async (req, res) => {
                 color: products.color,
                 productImage: images,
                 status: "Available",
-
-
             })
             await newProduct.save()
             return res.redirect("/admin/addproducts")
@@ -68,7 +66,6 @@ const addProducts = async (req, res) => {
         }
 
     } catch (error) {
-        console.error("error saving product")
         res.redirect("/admin/pageerror")
     }
 }
@@ -111,7 +108,6 @@ const getAllProducts = async (req, res) => {
             res.render("page-404");
         }
     } catch (error) {
-        console.log("Error:", error);
         res.redirect("/pageerror");
     }
 };
@@ -191,7 +187,6 @@ const editProduct = async (req, res) => {
         await Product.findByIdAndUpdate(id, updateFields, { new: true })
         res.redirect("/admin/products")
     } catch (error) {
-        console.error(error)
         res.redirect("/pageerror")
     }
 }
@@ -206,10 +201,8 @@ const deleteSingleImage = async (req, res) => {
         const imagePath = path.join("public", "uploads", "re-image", imageNameToServer)
         if (fs.existsSync(imagePath)) {
             await fs.unlinkSync(imagePath);
-            console.log(`image ${imageNameToServer} deleted Succesfully`)
         }
         else {
-            console.log(`image ${imageNameToServer} not found`)
         }
         res.send({ status: true })
     } catch (error) {
@@ -251,7 +244,6 @@ const addProductOffer = async (req, res) => {
 
         res.json({ status: true });
     } catch (error) {
-        console.error("Error adding product offer:", error);
         res.status(500).json({ status: false, message: "Internal Server Error" });
     }
 };
@@ -279,7 +271,6 @@ const removeProductOffer = async (req, res) => {
 
         res.json({ status: true });
     } catch (error) {
-        console.error("Error removing product offer:", error);
         res.redirect("/pageerror");
     }
 };

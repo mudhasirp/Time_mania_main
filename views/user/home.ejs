@@ -114,7 +114,7 @@
         }
 
         .bcc {
-            color: rgba(125, 109, 0, 0.965) !important;
+            color: rgba(127, 126, 126, 0.965) !important;
 
         }
 
@@ -422,16 +422,36 @@
             /* Subtle Grey on Hover */
             transform: scale(1.05);
         }
+        .abc 
+        {
+            background-color: #000 !important;
+        }
+        .iii
+        {
+            color: rgb(138, 138, 138) !important;
+        }
+        .al 
+        {
+            color: rgb(3, 76, 93) !important;
+        }
+        .barw
+        {
+            color: #beb993 !important;
+        }
+        .banna
+        {
+            color: #343537 !important;
+        }
     </style>
     <section class="hero">
         <div class="hero__slider owl-carousel">
-            <div class="hero__items set-bg" data-setbg="/img/signup/hunters-race-hNoSCxPWYII-unsplash.jpg">
+            <div class="hero__items set-bg" data-setbg="/img/signup/bave-pictures-wK_lG0-JkmM-unsplash.jpg">
                 <div class="container">
                     <div class="row">
                         <div class="col-xl-5 col-lg-7 col-md-8">
                             <div class="hero__text">
-                                <h6>Classic Watches Collection</h6>
-                                <h2 class="b">Timeless Elegance for Every Occasion</h2>
+                                <h6 class="banna">Classic Watches Collection</h6>
+                                <h2 class="barw">Timeless Elegance for Every Occasion</h2>
                                 <p class="bcc">Experience the perfect blend of precision and luxury with our exclusive
                                     collection of watches. Crafted for those who value sophistication and style.</p>
                                 <a href="/shop" class="primary-btn">Shop now <span class="arrow_right"></span></a>
@@ -445,8 +465,8 @@
                     <div class="row">
                         <div class="col-xl-5 col-lg-7 col-md-8">
                             <div class="hero__text">
-                                <h6>Sports Watches Collection</h6>
-                                <h2>Durable. Bold. Powerful.</h2>
+                                <h6 class="al">Sports Watches Collection</h6>
+                                <h2 class="iii">Durable. Bold. Powerful.</h2>
                                 <p>A prestigious brand crafting timeless timepieces.</p>
                                 <a href="/shop" class="primary-btn">Shop now <span class="arrow_right"></span></a>
                             </div>
@@ -512,9 +532,10 @@
                                     <img class="product-img" src="/uploads/re-image/<%=products[i].productImage[0]%>"
                                         alt="">
                                 </a>
-                                <a href="/addtoWishlist?id=<%=products[i]._id%>" class="wishlist-btn">
+                                <a href="#" class="wishlist-btn" onclick="addToWishlist('<%= products[i]._id %>');">
                                     <i class="fas fa-heart"></i>
                                 </a>
+                                
                             </div>
 
                             <div class="product-info">
@@ -523,13 +544,50 @@
                                 </h6>
                                 <h5 class="product-price">₹<%= products[i].salePrice %>
                                 </h5>
-                                <a href="/addToCart?id=<%=products[i]._id%>" class="add-to-cart-btn">Add to Cart</a>
                             </div>
+                            <form action="/addToCart" method="POST" style="display:inline;">
+                                <input type="hidden" name="productId" value="<%= products[i]._id %>" />
+                                <button type="submit" class="add-to-cart-btn abc">Add to Cart</button>
+                              </form>
+                              
+                              
                         </div>
                     </div>
                     <% } %>
             </div>
         </div>
     </section>
-
+<script>
+      function addToWishlist(productId) {
+    $.ajax({
+      url: "/addToWishlist",
+      method: "POST",
+      data: { productId: productId },
+      success: (response) => {
+        if (response.status) {
+          Swal.fire({
+            title: "Added to wishlist",
+            text: "The product has been added to your wishlist",
+            icon: "success",
+            timer: 2000,
+          })
+        } else {
+          Swal.fire({
+            title: "Already in wishlist",
+            text: response.message,
+            timer: 2000,
+          })
+        }
+      },
+      error: (error) => {
+        Swal.fire({
+          title: "Error",
+          text: "There was an error adding the product to your wishlist",
+          icon: "error",
+          timer: 2000
+        })
+      }
+    })
+  } 
+</script>
     <%- include("../../views/partials/user/footer") %>

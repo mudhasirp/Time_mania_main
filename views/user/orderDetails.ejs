@@ -62,7 +62,7 @@
                     <p class="text-muted mb-0">Order ID: <%= orders.orderId %></p>
                 </div>
                 <div>
-                    <% if (orders.status === "delivered") { %>
+                    <% if (orders.status === "delivered"||orders.status==="confirmed") { %>
                         <a href="/download-invoice/<%= orders._id %>" class="btn btn-primary">
                             <i class="fas fa-download me-2"></i>Download Invoice
                         </a>
@@ -198,10 +198,14 @@
                         <div class="col-6">Shipping:</div>
                         <div class="col-6 text-end">charges included</div>
                     </div>
+                    <div class="row mb-3">
+                        <div class="col-6">Tax</div>
+                        <div class="col-6 text-end">₹<%= (orders.activeProductsTotal * 0.12).toLocaleString() %></div>
+                    </div>
                     <hr>
                     <div class="row fw-bold">
                         <div class="col-6">Total Amount:</div>
-                        <div class="col-6 text-end">  ₹<%= (orders.activeProductsTotal - orders.discount).toLocaleString() %>
+                        <div class="col-6 text-end">  ₹<%= ((orders.activeProductsTotal+orders.activeProductsTotal * 0.12) - orders.discount).toLocaleString() %>
                         </div>
                     </div>
                 </div>

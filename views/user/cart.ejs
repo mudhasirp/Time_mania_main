@@ -351,6 +351,21 @@
                 }
             });
         }
+   
+        document.addEventListener("DOMContentLoaded", function () {
+            const message = "<%= typeof message !== 'undefined' ? message : '' %>"; // Ensures message is defined
+    
+            if (message && message.trim() !== "") {
+                Swal.fire({
+                    title: "Warning!",
+                    text: message,
+                    icon: "warning",
+                    confirmButtonText: "OK"
+                });
+            }
+        });
+        
     </script>
+    
 
     <%- include("../../views/partials/user/footer") %>

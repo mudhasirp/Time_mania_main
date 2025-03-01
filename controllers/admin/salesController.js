@@ -7,8 +7,8 @@ const getSalesReport = async (req, res) => {
         const { page = 1, day, date } = req.query;
         const limit = 10;
         const skip = (page - 1) * limit;
+        let query = { status: { $in: ["confirmed", "delivered"] } }; // <-- Filter orders by status
 
-        let query = {};
         let filterFlags = {
             salesToday: false,
             salesWeekly: false,
@@ -89,7 +89,6 @@ const getSalesReport = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Sales Report Error:', error);
         res.status(500).render('error', {
             message: 'Failed to generate sales report',
             error: process.env.NODE_ENV === 'development' ? error : {}
@@ -136,7 +135,6 @@ const filterSale = async (req, res) => {
             query.createdOn = { $gte: start, $lte: end };
         }
 
-        console.log("Generated Query:", JSON.stringify(query, null, 2));
 
         const orders = await Order.find(query)
             .populate({ path: 'orderedItems.product', model: 'Product', select: 'name price' })
@@ -144,10 +142,8 @@ const filterSale = async (req, res) => {
             .sort({ createdOn: -1 })
             .lean();
 
-        console.log("Total Orders Found:", orders.length);
 
-        console.log("Orders Found:", orders.length);
-        console.log("First Order:", orders[0]);
+        
 
         const totalOrders = await Order.countDocuments(query);
 
@@ -176,7 +172,6 @@ const filterSale = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Date Filter Error:', error);
         res.status(500).render('error', {
             message: 'Failed to filter sales by date',
             error: process.env.NODE_ENV === 'development' ? error : {}
@@ -215,7 +210,6 @@ const getDateRange = (day) => {
 };
 const downloadPDF = async (req, res) => {
     try {
-        console.log("📌 Full Request Query:", req.query);
 
         let { day, startDate, endDate } = req.query;
         let query = {};
@@ -241,7 +235,6 @@ const downloadPDF = async (req, res) => {
             startDate = fromDate.toISOString().split("T")[0];
             endDate = toDate.toISOString().split("T")[0];
 
-            console.log(`🔹 Auto-Setting Dates for ${day}: ${startDate} to ${endDate}`);
         }
 
         if (!startDate || !endDate || startDate.trim() === '' || endDate.trim() === '') {
@@ -259,59 +252,152 @@ const downloadPDF = async (req, res) => {
         end.setUTCHours(23, 59, 59, 999);
 
         query.createdOn = { $gte: start, $lte: end };
+        query.status = { $in: ["confirmed", "delivered"] }; // Ensure only confirmed & delivered orders
 
-        console.log("📌 Filtering Orders Between:", start.toISOString(), "and", end.toISOString());
-        console.log("📌 Final Query:", JSON.stringify(query, null, 2));
 
-        const orders = await Order.find(query).populate('userId', 'name email').sort({ createdOn: -1 }).lean();
-
-        console.log(`✅ Total Orders Found: ${orders.length}`);
+        const orders = await Order.find(query)
+        .populate('userId', 'name email') // Populate user details
+        .populate({
+            path: 'orderedItems.product', // Populate product details
+            model: 'Product',
+            select: 'productName' // Only fetch productName to reduce data load
+        })
+        .sort({ createdOn: -1 })
+        .lean();
+    
 
         if (orders.length === 0) {
             return res.status(404).json({ message: "No orders found for the selected date range." });
         }
-        const doc = new PDFDocument();
+        
+        const doc = new PDFDocument({ margin: 50, size: 'A4' });
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', 'attachment; filename=salesReport.pdf');
         doc.pipe(res);
 
-        doc.fontSize(16).text('Sales Report', { align: 'center' });
-        doc.moveDown(1);
+        // Table configuration
+        const columnConfig = [
+            { header: 'Order ID', width: 90, align: 'left' },
+            { header: 'User', width: 130, align: 'left' },
+            { header: 'Total (₹)', width: 70, align: 'right' },
+            { header: 'Discount (₹)', width: 80, align: 'right' },
+            { header: 'Date', width: 90, align: 'center' },
+            { header: 'Items', width: 150, align: 'left' }
+        ];
 
-        orders.forEach((order, index) => {
-            const userName = order.userId?.name || "Unknown User";
-            const userEmail = order.userId?.email || "N/A";
+        const rowHeight = 30;
+        const headerColor = '#f0f0f0';
+        let currentY = doc.y;
+        let pageNumber = 1;
 
-            doc.fontSize(14).text(`${index + 1}. Order ID: ${order.orderId}`, { underline: true });
-            doc.text(`User: ${userName} (${userEmail})`);
-            doc.text(`Total: ₹${order.finalAmount}`);
-            doc.text(`Discount: ₹${order.discount || 0}`);
-            doc.text(`Order Date: ${order.createdOn.toDateString()}`);
-            doc.moveDown(0.5);
+        // Function to draw headers
+        const drawHeader = () => {
+            doc.font('Helvetica-Bold').fontSize(12);
+            let x = 50;
+            columnConfig.forEach((col) => {
+                doc.rect(x, currentY, col.width, rowHeight)
+                   .fillAndStroke(headerColor, '#000');
+                doc.fillColor('#000')
+                   .text(col.header, x + 5, currentY + 10, {
+                       width: col.width - 10,
+                       align: col.align
+                   });
+                x += col.width;
+            });
+            currentY += rowHeight;
+            doc.moveTo(50, currentY).lineTo(x, currentY).stroke();
+        };
 
-            doc.fontSize(12).text(`Ordered Items:`);
+        // Function to add new page
+        const addNewPage = () => {
+            doc.addPage();
+            pageNumber++;
+            currentY = 50; // Reset to top margin
+            drawHeader();
+            
+            // Add footer with page number
+            doc.fontSize(10).text(
+                `Page ${pageNumber}`,
+                50,
+                doc.page.height - 50,
+                { align: 'center' }
+            );
+        };
 
-            if (!Array.isArray(order.orderedItems) || order.orderedItems.length === 0) {
-                doc.text("   No items in this order.");
-            } else {
-                order.orderedItems.forEach((item, idx) => {
-                    doc.text(`   ${idx + 1}. ${item.product?.name || "Unknown Product"} - ₹${item.product?.price || 0} x ${item.quantity}`);
-                });
+        // Initial header
+        doc.fontSize(18).text('Sales Report', { align: 'center' });
+        doc.moveDown(1.5);
+        currentY = doc.y;
+        drawHeader();
+
+        // Draw data rows
+        doc.font('Helvetica').fontSize(10);
+        orders.forEach((order, rowIndex) => {
+            // Check page boundaries
+            if (currentY > doc.page.height - 100) {
+                addNewPage();
             }
 
-            doc.moveDown(1);
+            const items = order.orderedItems
+            .map(item => `${item.product?.productName || 'Unknown'} x${item.quantity}`)
+
+                .join('\n');
+
+            const rowData = [
+                order.orderId,
+                `${order.userId?.name || 'Unknown'}\n${order.userId?.email || ''}`,
+                order.finalAmount.toFixed(2),
+                (order.discount || 0).toFixed(2),
+                order.createdOn.toISOString().split('T')[0],
+                items
+            ];
+
+            // Calculate max height for the row
+            let maxCellHeight = rowHeight;
+            columnConfig.forEach((col, colIndex) => {
+                const textHeight = doc.heightOfString(rowData[colIndex], {
+                    width: col.width - 10
+                });
+                maxCellHeight = Math.max(maxCellHeight, textHeight + 20);
+            });
+
+            // Check if we need a new page before drawing row
+            if (currentY + maxCellHeight > doc.page.height - 50) {
+                addNewPage();
+            }
+
+            // Draw cells
+            let x = 50;
+            columnConfig.forEach((col, colIndex) => {
+                doc.rect(x, currentY, col.width, maxCellHeight).stroke();
+                doc.fillColor('#333')
+                   .text(rowData[colIndex], x + 5, currentY + 10, {
+                       width: col.width - 10,
+                       align: col.align
+                   });
+                x += col.width;
+            });
+
+            currentY += maxCellHeight;
+            doc.moveTo(50, currentY).lineTo(x, currentY).stroke();
         });
+
+        // Add final footer
+        doc.fontSize(10).text(
+            `Page ${pageNumber}`,
+            50,
+            doc.page.height - 50,
+            { align: 'center' }
+        );
 
         doc.end();
     } catch (error) {
-        console.error("❌ PDF Download Error:", error);
         res.status(500).json({ message: "Error generating PDF" });
     }
 };
 
 const downloadExcel = async (req, res) => {
     try {
-        console.log("📌 Full Request Query:", req.query);
 
         let { day, startDate, endDate } = req.query;
         let query = {};
@@ -337,7 +423,6 @@ const downloadExcel = async (req, res) => {
             startDate = fromDate.toISOString().split("T")[0];
             endDate = toDate.toISOString().split("T")[0];
 
-            console.log(`🔹 Auto-Setting Dates for ${day}: ${startDate} to ${endDate}`);
         }
 
         if (!startDate || !endDate) {
@@ -355,16 +440,21 @@ const downloadExcel = async (req, res) => {
         end.setUTCHours(23, 59, 59, 999);
 
         query.createdOn = { $gte: start, $lte: end };
+        query.status = { $in: ["confirmed", "delivered"] }; // Ensure only confirmed & delivered orders
 
-        console.log("📌 Filtering Orders Between:", start.toISOString(), "and", end.toISOString());
 
         const orders = await Order.find(query)
-            .populate({ path: "orderedItems.product", model: "Product", select: "name price" })
-            .populate("userId", "name email")
-            .sort({ createdOn: -1 })
-            .lean();
+        .populate('userId', 'name email') // Populate user details
+        .populate({
+            path: 'orderedItems.product', // Populate product details
+            model: 'Product',
+            select: 'productName' // Ensure this matches your schema field
+        })
+        .sort({ createdOn: -1 })
+        .lean();
+    
 
-        console.log(`✅ Total Orders Found: ${orders.length}`);
+
 
         if (!orders || orders.length === 0) {
             return res.status(404).json({ message: "No orders found for the selected date range." });
@@ -381,7 +471,6 @@ const downloadExcel = async (req, res) => {
             { header: "Discount", key: "discount", width: 15 },
             { header: "Order Date", key: "createdOn", width: 20 },
             { header: "Product Name", key: "productName", width: 25 },
-            { header: "Price", key: "productPrice", width: 15 },
             { header: "Quantity", key: "quantity", width: 10 }
         ];
 
@@ -394,9 +483,8 @@ const downloadExcel = async (req, res) => {
                     finalAmount: order.finalAmount,
                     discount: order.discount || 0,
                     createdOn: order.createdOn.toDateString(),
-                    productName: "No Items",
-                    productPrice: "-",
-                    quantity: "-"
+                    productName: item.product?.productName || "Unknown Product", // ✅ FIXED
+                    quantity: item.quantity
                 });
             } else {
                 order.orderedItems.forEach(item => {
@@ -407,8 +495,7 @@ const downloadExcel = async (req, res) => {
                         finalAmount: order.finalAmount,
                         discount: order.discount || 0,
                         createdOn: order.createdOn.toDateString(),
-                        productName: item.product?.name || "Unknown Product",
-                        productPrice: item.product?.price || 0,
+                        productName: item.product?.productName || "Unknown Product", // ✅ FIXED
                         quantity: item.quantity
                     });
                 });
@@ -420,7 +507,6 @@ const downloadExcel = async (req, res) => {
         await workbook.xlsx.write(res);
         res.end();
     } catch (error) {
-        console.error("❌ Excel Download Error:", error);
         res.status(500).json({ message: "Error generating Excel report" });
     }
 };

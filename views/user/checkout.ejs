@@ -274,11 +274,22 @@
                   
             </div>
         </div>
+        
+      
         <div class="col-lg-4">
             <div class="order-summary">
                 <h4>Payment Details</h4>
                    <div class="coupon-section">
                     <h4>Apply Coupon</h4>
+                    <button id="removecoupon" style="margin-left: 300px; margin-top: -100px;"><svg
+                        xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="bi bi-trash" viewBox="0 0 16 16">
+                        <path
+                            d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
+                        <path
+                            d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
+                    </svg>
+                    </button>
                     <div class="input-group">
                       <input type="text" 
                              class="form-control" 
@@ -318,11 +329,11 @@
                   
   
              
-                <div class="payment-methods">
+                  <div class="payment-methods">
                     <div class="payment-card" onclick="selectPayment('cod')">
                         <div class="form-check">
                             <input class="form-check-input" type="radio" 
-                                   name="payment_option" value="cod" id="CashOnDelivery" checked>
+                                   name="payment_option" value="cod" id="CashOnDelivery" <%= grandTotal < 1000 ? 'checked' : '' %>>
                         </div>
                         <i class="fas fa-money-bill-wave fs-4 text-primary"></i>
                         <div>
@@ -330,11 +341,11 @@
                             <p class="text-muted small mb-0">Pay when you receive your order <br>(COD only available for orders below 1000)</p>
                         </div>
                     </div>
-
+                
                     <div class="payment-card" onclick="selectPayment('razorpay')">
                         <div class="form-check">
                             <input class="form-check-input" type="radio" 
-                                   name="payment_option" value="razorpay" id="Razorpay">
+                                   name="payment_option" value="razorpay" id="Razorpay" <%= grandTotal >= 1000 ? 'checked' : '' %>>
                         </div>
                         <i class="fas fa-credit-card fs-4 text-primary"></i>
                         <div>
@@ -342,7 +353,7 @@
                             <p class="text-muted small mb-0">Credit/Debit Cards, UPI, NetBanking</p>
                         </div>
                     </div>
-
+                
                     <div class="payment-card" onclick="selectPayment('wallet')">
                         <div class="form-check">
                             <input class="form-check-input" type="radio" 
@@ -354,17 +365,17 @@
                             <p class="text-muted small mb-0">
                                 Wallet Balance: <%= Wallet ? Wallet.balance : 0 %>
                               </p>
-                              
                         </div>
                     </div>
                 </div>
+                
 
                 <div class="order-summary mt-3">
                     <h5 class="mb-3 text-primary">Payment Summary</h5>
                     <div class="list-group">
                         <div class="list-group-item d-flex justify-content-between">
                             <span>Subtotal</span>
-                            <span>₹<%= grandTotal %></span>
+                            <span>₹<%= subtotal%></span>
                         </div>
                         <div class="list-group-item d-flex justify-content-between">
                             <span>Discount</span>
@@ -373,6 +384,10 @@
                         <div class="list-group-item d-flex justify-content-between">
                             <span>Shipping</span>
                             <span id="shippingCost">₹0</span> 
+                          </div>
+                          <div class="list-group-item d-flex justify-content-between">
+                            <span>Tax</span>
+                            <span id="TAX">₹<%=taxAmount%></span> 
                           </div>
                           
                         <div class="list-group-item d-flex justify-content-between fw-bold">
@@ -513,7 +528,6 @@ function deleteAddress(addressId) {
             $('#couponMessage').text('Please enter a coupon code').css('color', 'red');
             return;
         }
-
         $.ajax({
             url: '/applyCoupon',
             method: 'POST',
@@ -531,6 +545,7 @@ function deleteAddress(addressId) {
             error: () => $('#couponMessage').text('Failed to apply coupon').css('color', 'red')
         });
     }
+    
 
     
 async function placeOrder(userId) {

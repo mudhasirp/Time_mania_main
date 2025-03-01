@@ -32,7 +32,6 @@ const createCoupon = async (req, res) => {
         await newCoupon.save();
         return res.redirect("/admin/coupon");
     } catch (error) {
-        console.error("Error creating coupon:", error);
         res.redirect("/pageerror");
     }
 };
@@ -83,7 +82,6 @@ const updateCoupon = async (req, res) => {
             res.status(404).send("Coupon not found");
         }
     } catch (error) {
-        console.error("Error updating coupon:", error);
         res.redirect("/pageerror");
     }
 };
@@ -93,7 +91,6 @@ const deleteCoupon = async (req, res) => {
         await Coupon.deleteOne({ _id: id })
         res.status(200).send({ success: true, message: "Coupon deleted successfully" })
     } catch (error) {
-        console.log(error)
     }
 }
 module.exports = {

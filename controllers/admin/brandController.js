@@ -46,7 +46,6 @@ const blockBrand = async (req, res) => {
 
     } catch (error) {
         res.redirect("/pageerror")
-        console.log("theres an error for blocking the brand")
     }
 }
 const unBlockBrand = async (req, res) => {
@@ -57,7 +56,6 @@ const unBlockBrand = async (req, res) => {
 
     } catch (error) {
         res.redirect("/pageerror")
-        console.log("theres an error for  unblocking the brand")
 
     }
 }
@@ -71,7 +69,6 @@ const deleteBrand = async (req, res) => {
         res.redirect("/admin/brands")
     } catch (error) {
         res.redirect("/pageerror")
-        console.log("theres an error for deleting the brand")
 
     }
 }

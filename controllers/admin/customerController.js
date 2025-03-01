@@ -11,7 +11,7 @@ const customerInfo = async (req, res) => {
         const userData = await User.find({
             isAdmin: false,
             $or: [
-                { name: { $regex: ".*" + search + ".*", $options: "i" } }, //
+                { name: { $regex: ".*" + search + ".*", $options: "i" } }, 
                 { email: { $regex: ".*" + search + ".*", $options: "i" } },
             ],
         })
@@ -37,7 +37,6 @@ const customerInfo = async (req, res) => {
             search,
         });
     } catch (error) {
-        console.error(error);
 
         res.render("customers", {
             userData: [],

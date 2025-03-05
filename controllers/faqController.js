@@ -28,7 +28,16 @@ const faqData = [
     {
       question: "Can I replace the watch strap or get it adjusted?",
       answer: "Absolutely! We offer strap replacements and adjustments. Contact our support or visit a partner service center for assistance."
+    },
+    {
+      question:"Who is the founder of Time Mania",
+      answer:"Muhammed Mudhasir"
+    },
+    {
+      question:"Who is Muhammed Mudhasir",
+      answer:"Muhammed Mudhasir is not just a name—he's a visionary, a game-changer, and the driving force behind Time Mania. His passion for innovation and excellence has set a new benchmark in the industry."
     }
+
   ];
   
   

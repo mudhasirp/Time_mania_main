@@ -233,6 +233,10 @@ const signup = async (req, res) => {
         if (findUser) {
             return res.render("signup", { message: "User with this email already exists" })
         }
+        const findPhone = await User.findOne({ phone });
+        if (findPhone) {
+            return res.render("signup", { message: "User with this phone number already exists" });
+        }
         let referrer = null
         if (referralCode) {
             referrer = await User.findOne({ referralCode: referralCode.trim() })
@@ -270,15 +274,27 @@ const verifyOtp = async (req, res) => {
     try {
         const { otp } = req.body;
 
-
+        console.log("Full session data:", req.session);
         console.log("OTP received:", otp);
         console.log("Session OTP:", req.session.userOtp);
 
-        if (otp === req.session.userOtp) {
+        if (!req.session.userOtp) {
+            return res.status(400).json({ success: false, message: "Session expired, please try again." });
+        }
+
+        if (parseInt(otp) === parseInt(req.session.userOtp)) {
+            if (!req.session.userData) {
+                return res.status(400).json({ success: false, message: "Session expired, please try again." });
+            }
+
             const user = req.session.userData;
+            console.log("Before hashing password");
             const passwordHash = await securePassword(user.password);
+            console.log("After hashing password:", passwordHash);
+
             const referralCode = `REF-${Math.floor(100000 + Math.random() * 900000)}`;
             console.log("Generated Referral Code:", referralCode);
+
             const saveUserData = new User({
                 name: user.name,
                 email: user.email,
@@ -286,27 +302,44 @@ const verifyOtp = async (req, res) => {
                 password: passwordHash,
                 referralCode,
                 redeemed: false,
-                redeemedUsers: []
+                redeemedUsers: [],
+                wallet: null  // ✅ Setting wallet as null initially
             });
 
-            await saveUserData.save();
-            if (user.referrerId) {
+            await saveUserData.save().then(() => console.log("User saved successfully!"))
+                .catch(err => console.error("Error saving user:", err));
+
+            // ✅ Create a wallet immediately after user creation
+            const newWallet = new Wallet({
+                userId: saveUserData._id,
+                balance: 0,
+                transactions: []
+            });
+
+            await newWallet.save()
+                .then(() => console.log("Wallet created successfully!"))
+                .catch(err => console.error("Error creating wallet:", err));
+
+            // ✅ Update user with the created wallet ObjectId
+            saveUserData.wallet = newWallet._id;
+            await saveUserData.save().catch(err => console.error("Error updating user with wallet:", err));
+
+            if (user.referrerId && mongoose.Types.ObjectId.isValid(user.referrerId)) {
                 const referrer = await User.findById(user.referrerId);
                 if (referrer) {
                     referrer.redeemedUsers.push(saveUserData._id);
                     referrer.redeemed = true;
-                    await referrer.save();
+                    await referrer.save().catch(err => console.error("Error saving referrer:", err));
 
                     let referrerWallet = await Wallet.findOne({ userId: referrer._id });
                     if (referrerWallet) {
-
                         referrerWallet.balance += 100;
                         referrerWallet.transactions.push({
                             type: "credit",
                             amount: 100,
                             description: "Referral bonus"
                         });
-                        await referrerWallet.save();
+                        await referrerWallet.save().catch(err => console.error("Error updating wallet:", err));
                     } else {
                         referrerWallet = new Wallet({
                             userId: referrer._id,
@@ -317,20 +350,23 @@ const verifyOtp = async (req, res) => {
                                 description: "Referral bonus"
                             }]
                         });
-                        await referrerWallet.save();
+                        await referrerWallet.save().catch(err => console.error("Error creating wallet:", err));
                     }
                 }
             }
 
             req.session.user = saveUserData._id;
+            console.log("Working ✅");
             res.json({ success: true, redirectUrl: "/" });
         } else {
-            res.status(500).json({ success: false, message: "Invalid OTP, please try again" });
+            res.status(400).json({ success: false, message: "Invalid OTP, please try again" });
         }
     } catch (error) {
+        console.error("Error in verifyOtp:", error);
         res.status(500).json({ success: false, message: "An error occurred" });
     }
 };
+
 
 const resendOtp = async (req, res) => {
     try {

@@ -17,7 +17,7 @@ const uploads = multer({ storage: storage });
 router.get("/pageerror", adminController.pageerror)
 router.get("/login", adminController.loadlogin);
 router.post("/login", adminController.login)
-router.get("/", adminAuth, adminController.loadDashboard)
+router.get("/", isSessionAdmin,   adminAuth, adminController.loadDashboard)
 router.get("/logout", adminController.logout)
 router.get("/users", isSessionAdmin, adminAuth, customerController.customerInfo)
 router.get("/blockCustomer", adminAuth, customerController.customerBlocked)
@@ -44,7 +44,7 @@ router.get("/editProduct", adminAuth, productController.getEditProduct)
 router.post("/editProduct/:id", adminAuth, uploads.array("images", 4), productController.editProduct)
 router.post("/deleteImage", adminAuth, productController.deleteSingleImage)
 
-router.get('/orders', adminAuth, orderController.getOrder)
+router.get('/orders', isSessionAdmin,adminAuth, orderController.getOrder)
 
 
 router.get('/order/:orderId', adminAuth, orderController.orderDetailsAdmin)
@@ -60,7 +60,7 @@ router.post("/createCoupon", adminAuth, couponController.createCoupon)
 router.get("/editCoupon", adminAuth, couponController.editCoupon)
 router.post("/updateCoupon", adminAuth, couponController.updateCoupon)
 router.get("/deleteCoupon", adminAuth, couponController.deleteCoupon)
-router.get('/salesReport', adminAuth, salesController.getSalesReport)
+router.get('/salesReport', isSessionAdmin,adminAuth, salesController.getSalesReport)
 router.get('/dateWiseFilter', salesController.filterSale)
 router.get("/download-pdf", salesController.downloadPDF);
 router.get("/download-excel", salesController.downloadExcel);

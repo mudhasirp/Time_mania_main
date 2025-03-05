@@ -156,7 +156,7 @@ const filterSale = async (req, res) => {
 
         const totalPages = Math.ceil(totalOrders / limit);
 
-        res.render('salesReport', {
+        res.render('salesreport', {
             data: orders,
             totalPages,
             date,

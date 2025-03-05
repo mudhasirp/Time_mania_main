@@ -55,7 +55,7 @@ router.post("/addCategoryOffer", adminAuth, categoryController.addCategoryOffer)
 router.post("/removeCategoryOffer", adminAuth, categoryController.removeCategoryOffer)
 router.post("/addProductOffer", adminAuth, productController.addProductOffer)
 router.post("/removeProductOffer", adminAuth, productController.removeProductOffer)
-router.get("/coupon", adminAuth, couponController.loadCoupon)
+router.get("/coupon",isSessionAdmin, adminAuth, couponController.loadCoupon)
 router.post("/createCoupon", adminAuth, couponController.createCoupon)
 router.get("/editCoupon", adminAuth, couponController.editCoupon)
 router.post("/updateCoupon", adminAuth, couponController.updateCoupon)
@@ -64,6 +64,6 @@ router.get('/salesReport', adminAuth, salesController.getSalesReport)
 router.get('/dateWiseFilter', salesController.filterSale)
 router.get("/download-pdf", salesController.downloadPDF);
 router.get("/download-excel", salesController.downloadExcel);
-router.get("/dashboard", adminController.loadDashboard);
+router.get("/dashboard",isSessionAdmin, adminController.loadDashboard);
 
 module.exports = router

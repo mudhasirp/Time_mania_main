@@ -210,9 +210,92 @@
 .view-btn:hover {
     background-color: #138496;
 }
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    gap: 10px;
+}
+
+.pagination button {
+    background-color: #000000;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: background 0.3s ease;
+}
+
+.pagination button:hover {
+    background-color: #0056b3;
+}
+
+.pagination button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+#pageNumber {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+.back-to-shopping {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 15px;
+}
+
+.back-btn {
+    background-color: #000000;
+    color: white;
+    padding: 8px 16px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: background 0.3s ease;
+}
+
+.back-btn:hover {
+    background-color: #218838;
+}
+header
+{
+    display: none;
+}
+.back-to-shopping {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.back-btn {
+    background-color: #000000;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background 0.3s ease;
+}
+
+.back-btn:hover {
+    background-color: #6d8e74;
+}
+
+
     </style>
 
+    
     <main class="container mt-4">
+      
+        <div class="back-to-shopping">
+            <a href="/userProfile" class="back-btn">← Back to Profile</a>
+        </div>
         <h2>My Orders</h2>
         <% if (orders && orders.length> 0) { %>
             <% orders.forEach(order=> { %>
@@ -299,10 +382,17 @@
                     </div>
 
                 </div>
+              
                 <% }); %>
                     <% } else { %>
                         <div class="text-center">No orders found.</div>
                         <% } %>
+                        <div class="pagination">
+                            <button id="prevPage" onclick="changePage(-1)">Previous</button>
+                            <span id="pageIndicator"></span>
+                            <button id="nextPage" onclick="changePage(1)">Next</button>
+                        </div>
+                        
     </main>
 
     <div id="cancelOrderModal" class="modal">
@@ -336,6 +426,43 @@
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+         $(document).ready(function () {
+        let ordersPerPage = 5;
+        let currentPage = 1;
+        let orders = $(".order-card"); // Get all order cards
+        let totalPages = Math.ceil(orders.length / ordersPerPage);
+
+        function showPage(page) {
+            orders.hide(); // Hide all orders
+            let start = (page - 1) * ordersPerPage;
+            let end = start + ordersPerPage;
+            orders.slice(start, end).show(); // Show only selected orders
+
+            // Enable/disable pagination buttons
+            $("#prevPage").prop("disabled", page === 1);
+            $("#nextPage").prop("disabled", page === totalPages);
+
+            $("#pageNumber").text(page); // Update page number display
+        }
+
+        // Initial display
+        showPage(currentPage);
+
+        // Pagination button actions
+        $("#prevPage").click(function () {
+            if (currentPage > 1) {
+                currentPage--;
+                showPage(currentPage);
+            }
+        });
+
+        $("#nextPage").click(function () {
+            if (currentPage < totalPages) {
+                currentPage++;
+                showPage(currentPage);
+            }
+        });
+    });
         function openCancelModal(orderId, productId = null) {
             const modal = document.getElementById('cancelOrderModal');
             const title = document.getElementById('modalTitle');

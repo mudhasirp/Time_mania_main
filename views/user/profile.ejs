@@ -140,6 +140,9 @@
                 font-size: 2rem;
             }
         }
+        .a {
+            background: black !important;
+        }
     </style>
 
     <main class="main">
@@ -276,13 +279,11 @@
                                             <div class="card-body">
                                                 <div class="text-center mb-5">
                                                     <p class="text-muted mb-2">Available Balance</p>
-                                                    <h2 class="wallet-balance">₹<%= wallet ? wallet.balance.toFixed(2)
-                                                            : '0.00' %>
-                                                    </h2>
+                                                    <h2 class="wallet-balance">₹<%= wallet ? wallet.balance.toFixed(2) : '0.00' %></h2>
                                                 </div>
-
+                                    
                                                 <h5 class="mb-4">Recent Transactions</h5>
-                                                <% if (wallet && wallet.transactions.length> 0) { %>
+                                                <% if (wallet && wallet.transactions.length > 0) { %>
                                                     <div class="table-responsive">
                                                         <table class="transaction-table">
                                                             <thead>
@@ -293,33 +294,33 @@
                                                                     <th>Type</th>
                                                                 </tr>
                                                             </thead>
-                                                            <tbody>
-                                                                <% wallet.transactions.forEach(transaction=> { %>
-                                                                    <tr>
-                                                                        <td>
-                                                                            <%= new
-                                                                                Date(transaction.createdAt).toLocaleDateString()
-                                                                                %>
-                                                                        </td>
-                                                                        <td>
-                                                                            <%= transaction.description %>
-                                                                        </td>
-                                                                        <td
-                                                                            class="<%= transaction.type === 'credit' ? 'text-success' : 'text-danger' %>">
+                                                            <tbody id="transaction-body">
+                                                                <% wallet.transactions.forEach((transaction, index) => { %>
+                                                                    <tr class="transaction-row" data-index="<%= index %>">
+                                                                        <td><%= new Date(transaction.createdAt).toLocaleDateString() %></td>
+                                                                        <td><%= transaction.description %></td>
+                                                                        <td class="<%= transaction.type === 'credit' ? 'text-success' : 'text-danger' %>">
                                                                             ₹<%= transaction.amount.toFixed(2) %>
                                                                         </td>
-                                                                        <td><span
-                                                                                class="badge bg-<%= transaction.type === 'credit' ? 'success' : 'danger' %>">
+                                                                        <td>
+                                                                            <span class="badge bg-<%= transaction.type === 'credit' ? 'success' : 'danger' %>">
                                                                                 <%= transaction.type.toUpperCase() %>
-                                                                            </span></td>
+                                                                            </span>
+                                                                        </td>
                                                                     </tr>
-                                                                    <% }) %>
+                                                                <% }) %>
                                                             </tbody>
                                                         </table>
                                                     </div>
-                                                    <% } else { %>
-                                                        <div class="alert alert-info">No transactions found</div>
-                                                        <% } %>
+                                                    <!-- Pagination Controls -->
+                                                    <div class="pagination-controls mt-3 text-center">
+                                                        <button id="prevPage" class="btn btn-primary btn-sm a">Previous</button>
+                                                        <span id="pageNumber" class="mx-2">1</span>
+                                                        <button id="nextPage" class="btn btn-primary btn-sm a">Next</button>
+                                                    </div>
+                                                <% } else { %>
+                                                    <div class="alert alert-info">No transactions found</div>
+                                                <% } %>
                                             </div>
                                         </div>
                                     </div>
@@ -358,6 +359,35 @@
                 });
             });
         }
+        document.addEventListener("DOMContentLoaded", function () {
+        const rowsPerPage = 5; // Set number of transactions per page
+        let currentPage = 1;
+        const transactionRows = document.querySelectorAll(".transaction-row");
+        const totalPages = Math.ceil(transactionRows.length / rowsPerPage);
+
+        function showPage(page) {
+            transactionRows.forEach((row, index) => {
+                row.style.display = (index >= (page - 1) * rowsPerPage && index < page * rowsPerPage) ? "" : "none";
+            });
+            document.getElementById("pageNumber").textContent = page;
+        }
+
+        document.getElementById("prevPage").addEventListener("click", function () {
+            if (currentPage > 1) {
+                currentPage--;
+                showPage(currentPage);
+            }
+        });
+
+        document.getElementById("nextPage").addEventListener("click", function () {
+            if (currentPage < totalPages) {
+                currentPage++;
+                showPage(currentPage);
+            }
+        });
+
+        showPage(currentPage); // Initialize first page
+    });
     </script>
 
     <%- include("../../views/partials/user/footer") %>

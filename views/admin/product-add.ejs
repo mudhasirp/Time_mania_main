@@ -1,7 +1,9 @@
 <%- include("../../views/partials/admin/header") %>
 
     <head>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+
     </head>
     <style>
         .error-message {
@@ -203,7 +205,6 @@
         </div>
         </div>
     </section>
-    <script src="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.js"></script>
     <script>
         function validateAndSubmit() {
             if (validateForm()) {
@@ -227,60 +228,51 @@
         }
 
         function viewImage(event, index) {
-            let input = event.target;
-            let reader = new FileReader();
-            reader.onload = function () {
-                let dataURL = reader.result;
-                let image = document.getElementById("imgView" + index)
-                image.src = dataURL;
-                let cropper = new Cropper(image, {
-                    aspectRatio: 1,
-                    viewMode: 1,
-                    quides: true,
-                    background: false,
-                    autoCropArea: 1,
-                    zoomble: true
-
-
+    let input = event.target;
+    let reader = new FileReader();
+    reader.onload = function() {
+        let dataURL = reader.result;
+        let image = document.getElementById("imgView" + index);
+        image.src = dataURL;
+        
+        // Make sure the image is loaded before initializing Cropper
+        image.onload = function() {
+            let cropper = new Cropper(image, {
+                aspectRatio: 1,
+                viewMode: 1,
+                guides: true,  // Note: was "quides" in your code
+                background: false,
+                autoCropArea: 1,
+                zoomable: true  // Note: was "zoomble" in your code
+            });
+            
+            let cropperContainer = document.querySelector("#croppedImg" + index).parentNode;
+            cropperContainer.style.display = "block";
+            let saveButton = document.querySelector("#saveButton" + index);
+            saveButton.addEventListener("click", async function() {
+                let croppedCanvas = cropper.getCroppedCanvas();
+                let croppedImage = document.getElementById("croppedImg" + index);
+                croppedImage.src = croppedCanvas.toDataURL("image/jpeg", 1.0);
+                
+                let timestamp = new Date().getTime();
+                let filename = `cropped-img-${timestamp}-${index}.png`;
+                
+                await croppedCanvas.toBlob((blob) => {
+                    let input = document.getElementById("input" + index);
+                    let imgFile = new File([blob], filename, { type: blob.type });
+                    
+                    const fileList = new DataTransfer();
+                    fileList.items.add(imgFile);
+                    input.files = fileList.files;
                 });
-                let cropperContainer = document.querySelector("#croppedImg" + index).parentNode;
-                cropperContainer.style.display = "block"
-                let saveButton = document.querySelector("#saveButton" + index);
-                saveButton.addEventListener("click", async function () {
-
-                    let croppedCanvas = cropper.getCroppedCanvas();
-
-
-                    let croppedImage = document.getElementById("croppedImg" + index);
-                    croppedImage.src = croppedCanvas.toDataURL("image/jpeg", 1.0);
-
-
-                    let timestamp = new Date().getTime();
-                    let filename = `cropped-img-${timestamp}-${index}.png`;
-
-
-                    await croppedCanvas.toBlob((blob) => {
-
-                        let input = document.getElementById("input" + index);
-
-
-                        let imgFile = new File([blob], filename, { type: blob.type });
-
-
-                        const fileList = new DataTransfer();
-                        fileList.items.add(imgFile);
-                        input.files = fileList.files;
-                    });
-
-
-                    cropperContainer.style.display = "none";
-                    cropper.destroy();
-                });
-
-
-            };
-            reader.readAsDataURL(input.files[0])
-        }
+                
+                cropperContainer.style.display = "none";
+                cropper.destroy();
+            });
+        };
+    };
+    reader.readAsDataURL(input.files[0]);
+}
         const selectedImages = [];
         document.getElementById("input1").addEventListener("change", handleFileSelect);
         function handleFileSelect(event) {

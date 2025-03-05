@@ -343,14 +343,15 @@ const downloadPDF = async (req, res) => {
 
                 .join('\n');
 
-            const rowData = [
-                order.orderId,
-                `${order.userId?.name || 'Unknown'}\n${order.userId?.email || ''}`,
-                order.finalAmount.toFixed(2),
-                (order.discount || 0).toFixed(2),
-                order.createdOn.toISOString().split('T')[0],
-                items
-            ];
+                const rowData = [
+                    order.orderId || "Unknown",
+                    `${order.userId?.name || "Unknown"}\n${order.userId?.email || "Unknown"}`,
+                    (order.finalAmount ? order.finalAmount.toFixed(2) : "Unknown"),
+                    (order.discount !== undefined ? order.discount.toFixed(2) : "Unknown"),
+                    (order.createdOn ? order.createdOn.toISOString().split('T')[0] : "Unknown"),
+                    items || "Unknown"
+                ];
+                
 
             // Calculate max height for the row
             let maxCellHeight = rowHeight;
@@ -417,6 +418,12 @@ const downloadExcel = async (req, res) => {
         } else if (day === "salesYearly") {
             fromDate = new Date();
             fromDate.setFullYear(today.getFullYear() - 1);
+            fromDate.setUTCHours(0, 0, 0, 0); // Start of the day 1 year ago
+            
+            // For yearly reports, explicitly set the day to match today's date
+            // This ensures we get a full 365/366 days
+            fromDate.setDate(today.getDate());
+            fromDate.setMonth(today.getMonth());
         }
 
         if ((!startDate || !endDate || startDate.trim() === '' || endDate.trim() === '') && fromDate) {
@@ -483,8 +490,8 @@ const downloadExcel = async (req, res) => {
                     finalAmount: order.finalAmount,
                     discount: order.discount || 0,
                     createdOn: order.createdOn.toDateString(),
-                    productName: item.product?.productName || "Unknown Product", // ✅ FIXED
-                    quantity: item.quantity
+                    productName: "No Products", // ✅ FIXED
+                    quantity: 0
                 });
             } else {
                 order.orderedItems.forEach(item => {
@@ -492,7 +499,7 @@ const downloadExcel = async (req, res) => {
                         orderId: order.orderId,
                         userName: order.userId?.name || "Unknown User",
                         userEmail: order.userId?.email || "N/A",
-                        finalAmount: order.finalAmount,
+                        finalAmount: order.finalAmount ,
                         discount: order.discount || 0,
                         createdOn: order.createdOn.toDateString(),
                         productName: item.product?.productName || "Unknown Product", // ✅ FIXED

@@ -368,17 +368,18 @@ header
 
                     <div class="text-center">
                         <a href="/orderDetails?id=<%= order._id %>" class="view-btn">View Details</a>
-                        <% if (order.status==="pending" ) { %>
-                            <button class="cancel-btn" onclick="openCancelModal('<%= order._id %>')">Cancel Entire
-                                Order</button>
-                            <% } else if (order.status==="delivered" ) { %>
-                                <button class="return-btn" onclick="openReturnModal('<%= order._id %>')">Return
-                                    Order</button>
-                                <p>(Only before 7 days)</p>
-                                <% } else if (order.status==="confirmed" ) { %>
-                                    <button class="cancel-btn" onclick="openCancelModal('<%= order._id %>')">Cancel
-                                        Order</button>
-                                    <% } %>
+                        <% if (order.status === "pending") { %>
+                            <% if (!order.orderedItems.some(item => item.productStatus === 'cancelled')) { %>
+                                <button class="cancel-btn" onclick="openCancelModal('<%= order._id %>')">Cancel Entire Order</button>
+                            <% } %>
+                        <% } else if (order.status === "delivered") { %>
+                            <button class="return-btn" onclick="openReturnModal('<%= order._id %>')">Return Order</button>
+                            <p>(Only before 7 days)</p>
+                        <% } else if (order.status === "confirmed") { %>
+                            <% if (!order.orderedItems.some(item => item.productStatus === 'cancelled')) { %>
+                                <button class="cancel-btn" onclick="openCancelModal('<%= order._id %>')">Cancel Order</button>
+                            <% } %>
+                        <% } %>
                     </div>
 
                 </div>
@@ -404,6 +405,7 @@ header
                 <input type="hidden" id="cancelProductId" name="productId">
                 <div id="cancelMessage">
                     <p>Are you sure you want to cancel this item?</p>
+                    
                     <label for="cancelReason">Reason for Cancellation (Optional):</label>
                     <textarea id="cancelReason" name="reason" rows="3"></textarea>
                 </div>
@@ -429,20 +431,19 @@ header
          $(document).ready(function () {
         let ordersPerPage = 5;
         let currentPage = 1;
-        let orders = $(".order-card"); // Get all order cards
+        let orders = $(".order-card"); 
         let totalPages = Math.ceil(orders.length / ordersPerPage);
 
         function showPage(page) {
             orders.hide(); // Hide all orders
             let start = (page - 1) * ordersPerPage;
             let end = start + ordersPerPage;
-            orders.slice(start, end).show(); // Show only selected orders
+            orders.slice(start, end).show(); 
 
-            // Enable/disable pagination buttons
             $("#prevPage").prop("disabled", page === 1);
             $("#nextPage").prop("disabled", page === totalPages);
 
-            $("#pageNumber").text(page); // Update page number display
+            $("#pageNumber").text(page); 
         }
 
         // Initial display
@@ -474,7 +475,7 @@ header
             if (productId) {
                 title.textContent = "Cancel Product";
                 message.innerHTML = `
-            <p>Are you sure you want to cancel this specific product?</p>
+            <p>Are you sure you want to cancel this specific product? <br>(you will not get the tax amount when you cancel specific product)</p>
             <label for="cancelReason">Reason for Cancellation (Optional):</label>
             <textarea id="cancelReason" name="reason" rows="3"></textarea>
         `;

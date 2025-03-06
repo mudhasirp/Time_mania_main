@@ -74,7 +74,7 @@ const orderSchema = new Schema({
         enum: ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled", "return-requested", "returned", "Processing","paid","completed"], // Added "Processing"
         default: "pending"
     },
-    refundDetails: {
+    refundDetails: [{
         amount: { type: Number, default: 0 },
         razorpayRefundId: String,
         initiatedAt: Date,
@@ -83,8 +83,15 @@ const orderSchema = new Schema({
             type: String,
             enum: ["pending", "processed", "failed"],
             default: "pending"
-        }
-    },
+        },
+        type: {
+            type: String,
+            enum: ["full", "partial"],
+            required: true
+        },
+        reason: String
+    }]
+    ,
     createdOn: {
         type: Date,
         default: Date.now

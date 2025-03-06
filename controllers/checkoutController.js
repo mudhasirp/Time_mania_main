@@ -413,8 +413,11 @@ const cancelOrder = async (req, res) => {
         let refundAmount = 0;
         const cancellationType = productId ? 'partial' : 'full';
 
-        if (cancellationType === 'full') {
+        // Calculate total already refunded amount
+        const alreadyRefundedAmount = Array.isArray(order.refundDetails) ?
+            order.refundDetails.reduce((total, refund) => total + refund.amount, 0) : 0;
 
+        if (cancellationType === 'full') {
             if (order.status === 'cancelled') {
                 return res.status(400).json({
                     success: false,
@@ -422,17 +425,34 @@ const cancelOrder = async (req, res) => {
                 });
             }
 
-            refundAmount = order.finalAmount;
+            // Only refund what hasn't been refunded yet
+            refundAmount = order.finalAmount - alreadyRefundedAmount;
+            
+            if (refundAmount <= 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'All items have already been refunded'
+                });
+            }
+            
             order.status = 'cancelled';
-            const bulkOps = order.orderedItems.map(item => ({
-                updateOne: {
-                    filter: { _id: item.product._id },
-                    update: { $inc: { quantity: item.quantity } }
+            
+            // Only update inventory for items not already cancelled
+            const bulkOps = order.orderedItems.map(item => {
+                if (item.productStatus !== 'cancelled') {
+                    return {
+                        updateOne: {
+                            filter: { _id: item.product._id },
+                            update: { $inc: { quantity: item.quantity } }
+                        }
+                    };
                 }
-            }));
+                return null;
+            }).filter(op => op !== null);
 
-            await Product.bulkWrite(bulkOps);
-
+            if (bulkOps.length > 0) {
+                await Product.bulkWrite(bulkOps);
+            }
         } else {
             const item = order.orderedItems.find(item =>
                 item.product._id.equals(productId) &&
@@ -468,11 +488,12 @@ const cancelOrder = async (req, res) => {
 
             if (allCancelled) {
                 order.status = 'cancelled';
-                refundAmount = order.finalAmount;
+                // Keep refundAmount as is - only refund for this specific item
             }
         }
 
-        if (order.payment.method === 'razorpay' || order.payment.method === 'wallet') {
+        // Process the refund
+        if (refundAmount > 0 && (order.payment.method === 'razorpay' || order.payment.method === 'wallet')) {
             const wallet = await Wallet.findOneAndUpdate(
                 { userId: order.userId._id },
                 {
@@ -491,22 +512,31 @@ const cancelOrder = async (req, res) => {
             );
         }
 
-        order.refundDetails = {
-            amount: refundAmount,
-            initiatedAt: new Date(),
-            type: cancellationType,
-            reason: reason || 'Not specified'
-        };
+        // Initialize refundDetails as an array if it's not already
+        if (!order.refundDetails) {
+            order.refundDetails = [];
+        } else if (!Array.isArray(order.refundDetails)) {
+            // Convert existing object to array if needed (for backward compatibility)
+            order.refundDetails = order.refundDetails.amount > 0 ? [order.refundDetails] : [];
+        }
+        
+        // Add the new refund record
+        if (refundAmount > 0) {
+            order.refundDetails.push({
+                amount: refundAmount,
+                initiatedAt: new Date(),
+                status: "pending",
+                type: cancellationType,
+                reason: reason || 'Not specified'
+            });
+        }
 
         order.updatedAt = new Date();
         await order.save();
 
-
-
         return res.json({
             success: true,
-            message: `${cancellationType === 'full' ? 'Order' : 'Product'
-                } cancelled successfully`,
+            message: `${cancellationType === 'full' ? 'Order' : 'Product'} cancelled successfully`,
             refundAmount,
             newOrderStatus: order.status
         });
